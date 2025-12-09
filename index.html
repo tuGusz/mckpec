@@ -11,12 +11,11 @@
         .card-status { border-left: 5px solid gray; transition: transform 0.2s;}
         .card-status:hover { transform: translateY(-5px); }
         
-    
         .status-Online { border-left-color: #198754; } 
         .status-Erro { border-left-color: #dc3545; }   
         .status-Offline { border-left-color: #6c757d; opacity: 0.8; } 
         
-        .badge-servico { font-size: 0.8em; margin-right: 5px; margin-bottom: 5px; display: inline-block; }
+        .badge-servico { font-size: 0.85em; margin-right: 5px; margin-bottom: 5px; display: inline-block; }
         .hardware-info { font-size: 0.75rem; color: #555; }
         .hardware-info strong { color: #333; }
     </style>
@@ -69,51 +68,62 @@
 
             for (let municipio in dados) {
                 let info = dados[municipio];
-               
+                 
                 let dataUltimaAtualizacao = parseDataPTBR(info.ultima_atualizacao);
                 let diferencaSegundos = (agora - dataUltimaAtualizacao) / 1000;
                 
                 let agenteStatus = "Agente Online";
-                let badgeAgente = "bg-success"; 
+                let badgeAgente = "bg-success";
                 
-              
                 if (diferencaSegundos > 120) {
                     agenteStatus = "Agente Parado/Offline";
-                    badgeAgente = "bg-secondary";  
-                }
-                
-                let corStatus = info.status_geral === 'Online' ? 'success' : 'danger';
-                let textoStatusGeral = info.status_geral === 'Online' ? 'ONLINE' : 'ERRO';
-                
-                let bordaClass = info.status_geral === 'Online' ? 'status-Online' : 'status-Erro';
-                
-                
-                if (agenteStatus !== "Agente Online") {
-                    bordaClass = "status-Offline";
-                    corStatus = "secondary";
-                    textoStatusGeral = "OFFLINE";
+                    badgeAgente = "bg-secondary";
                 }
 
-                let htmlErros = '';
-                if (info.erros && info.erros.length > 0) {
-                     
-                    info.erros.forEach(erro => {
-                        htmlErros += `<span class="badge bg-danger badge-servico"><i class="bi bi-x-circle"></i> ${erro}</span>`;
-                    });
-                } else {
-                    
-                    htmlErros = `<span class="badge bg-success badge-servico"><i class="bi bi-check-circle"></i> PostgreSQL OK</span>
-                                 <span class="badge bg-success badge-servico"><i class="bi bi-check-circle"></i> e-SUS PEC OK</span>
-                                 <span class="badge bg-success badge-servico"><i class="bi bi-check-circle"></i> Gateway OK</span>`;
+              
+                let bordaClass = info.status_geral === 'Online' ? 'status-Online' : 'status-Erro';
+                let textoStatusGeral = info.status_geral === 'Online' ? 'ONLINE' : 'ERRO';
+                let corStatusGeral = info.status_geral === 'Online' ? 'success' : 'danger';
+
+                if (agenteStatus !== "Agente Online") {
+                    bordaClass = "status-Offline";
+                    textoStatusGeral = "OFFLINE";
+                    corStatusGeral = "secondary";
                 }
-             
+
+                 
+                let listaErros = info.erros || []; 
+                
+              
+                let htmlPostgres = '';
+                if (listaErros.includes("PostgreSQL OFF")) {
+                    htmlPostgres = `<span class="badge bg-danger badge-servico"><i class="bi bi-x-circle"></i> PostgreSQL OFF</span>`;
+                } else {
+                    htmlPostgres = `<span class="badge bg-success badge-servico"><i class="bi bi-check-circle"></i> PostgreSQL OK</span>`;
+                }
+ 
+                let htmlPEC = '';
+                if (listaErros.includes("PEC OFF")) {
+                    htmlPEC = `<span class="badge bg-danger badge-servico"><i class="bi bi-x-circle"></i> e-SUS PEC OFF</span>`;
+                } else {
+                    htmlPEC = `<span class="badge bg-success badge-servico"><i class="bi bi-check-circle"></i> e-SUS PEC OK</span>`;
+                }
+ 
+                let htmlGateway = '';
+                if (listaErros.includes("Gateway OFF")) {
+                    htmlGateway = `<span class="badge bg-danger badge-servico"><i class="bi bi-x-circle"></i> Gateway OFF</span>`;
+                } else {
+                    htmlGateway = `<span class="badge bg-success badge-servico"><i class="bi bi-check-circle"></i> Gateway OK</span>`;
+                }
+                // --------------------------------------
+
                 let html = `
                     <div class="col-md-4 mb-4">
                         <div class="card shadow-sm card-status ${bordaClass}">
                             <div class="card-body">
                                 <h5 class="card-title d-flex justify-content-between align-items-center">
                                     ${municipio}
-                                    <span class="badge bg-${corStatus}">${textoStatusGeral}</span>
+                                    <span class="badge bg-${corStatusGeral}">${textoStatusGeral}</span>
                                 </h5>
                                 
                                 <div class="mb-2">
@@ -128,7 +138,9 @@
                                 
                                 <div class="my-3 border-top pt-2">
                                     <strong style="font-size: 0.85rem">Status dos Serviços:</strong><br>
-                                    ${htmlErros}
+                                    ${htmlPostgres}
+                                    ${htmlPEC}
+                                    ${htmlGateway}
                                 </div>
 
                                 <div class="alert alert-light border p-2 hardware-info">
