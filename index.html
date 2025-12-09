@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Monitoramento MCK</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body { background-color: #f0f2f5; }
+        .card-status { border-left: 5px solid gray; transition: transform 0.2s;}
+        .card-status:hover { transform: translateY(-5px); }
+        .status-Online { border-left-color: #198754; }  
+        .status-Erro { border-left-color: #dc3545; }    
+        .status-Offline { border-left-color: #6c757d; opacity: 0.8; } 
+        
+        .badge-servico { font-size: 0.8em; margin-right: 5px; }
+        .hardware-info { font-size: 0.75rem; color: #555; }
+        .hardware-info strong { color: #333; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-dark bg-dark mb-4">
+    <div class="container-fluid">
+        <span class="navbar-brand mb-0 h1">MCK Monitoramento - PEC</span>
+        <span class="text-white" style="font-size: 0.8rem" id="relogio">Atualizado: --:--:--</span>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="row" id="painel-clientes">
+        <div class="col-12 text-center">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p>Carregando dados dos municípios...</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    const URL_BANCO = "https://monitorpec-72985-default-rtdb.firebaseio.com/clientes.json";
+
+
+    function parseDataPTBR(dataStr) {
+        if(!dataStr) return new Date(0);
+        const [dateValues, timeValues] = dataStr.split(' ');
+        const [day, month, year] = dateValues.split('/');
+        const [hours, minutes, seconds] = timeValues.split(':');
+        return new Date(+year, +month - 1, +day, +hours, +minutes, +seconds);
+    }
+
+    async function atualizarPainel() {
+        try {
+            document.getElementById('relogio').innerText = "Verificando: " + new Date().toLocaleTimeString();
+            
+            const resposta = await fetch(URL_BANCO);
+            const dados = await resposta.json();
+             
+            const container = document.getElementById('painel-clientes');
+            container.innerHTML = '';  
+
+            if (!dados) {
+                container.innerHTML = '<div class="alert alert-warning">Nenhum dado encontrado no servidor.</div>';
+                return;
+            }
+
+        
+            const agora = new Date();
+
+            for (let municipio in dados) {
+                let info = dados[municipio];
+               
+                let dataUltimaAtualizacao = parseDataPTBR(info.ultima_atualizacao);
+        
+                let diferencaSegundos = (agora - dataUltimaAtualizacao) / 1000;
+                
+                let agenteStatus = "Rodando";
+                let badgeAgente = "bg-success";
+                
+               
+                if (diferencaSegundos > 120) {
+                    agenteStatus = "Agente Parado/Offline";
+                    badgeAgente = "bg-secondary"; // Cinza
+                }
+           
+                let corStatus = info.status_geral === 'Online' ? 'success' : 'danger';
+                let bordaClass = info.status_geral === 'Online' ? 'status-Online' : 'status-Erro';
+                
+              
+                if (agenteStatus !== "Rodando") {
+                    bordaClass = "status-Offline";
+                }
+
+                let htmlErros = '';
+                if (info.erros && info.erros.length > 0) {
+                    info.erros.forEach(erro => {
+                        htmlErros += `<span class="badge bg-danger badge-servico">${erro}</span>`;
+                    });
+                } else {
+                    htmlErros = `<span class="badge bg-success badge-servico">Serviços OK</span>`;
+                }
+
+                let html = `
+                    <div class="col-md-4 mb-4">
+                        <div class="card shadow-sm card-status ${bordaClass}">
+                            <div class="card-body">
+                                <h5 class="card-title d-flex justify-content-between align-items-center">
+                                    ${municipio}
+                                    <span class="badge bg-${corStatus}">${info.status_geral}</span>
+                                </h5>
+                                
+                                <div class="mb-2">
+                                    <span class="badge ${badgeAgente}" style="font-size:0.7rem">
+                                        <i class="bi bi-robot"></i> ${agenteStatus}
+                                    </span>
+                                </div>
+
+                                <h6 class="card-subtitle mb-2 text-muted" style="font-size: 0.9rem">
+                                    <i class="bi bi-pc-display"></i> ${info.maquina || 'PC Desconhecido'}
+                                </h6>
+                                
+                                <div class="my-3">
+                                    <strong>Serviços Monitorados:</strong><br>
+                                    ${htmlErros}
+                                </div>
+
+                                <div class="alert alert-light border p-2 hardware-info">
+                                    <div class="mb-1 border-bottom pb-1">
+                                        <i class="bi bi-clock"></i> <strong>Última atualização:</strong><br> ${info.ultima_atualizacao}
+                                    </div>
+                                    
+                                    <div class="mt-2">
+                                        <strong>Usuário:</strong> ${info.hardware.usuario || '?'}<br>
+                                        <strong>Sistema:</strong> ${info.hardware.sistema || '?'}<br>
+                                        <strong>CPU:</strong> ${info.hardware.processador || '?'}<br>
+                                        <strong>Placa Mãe:</strong> ${info.hardware.placa_mae || '?'}<br>
+                                        <strong>RAM:</strong> ${info.hardware.memoria_ram || '?'} | 
+                                        <strong>Disco:</strong> ${info.hardware.armazenamento || '?'}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += html;
+            }
+
+        } catch (erro) {
+            console.error(erro);
+        }
+    }
+
+    atualizarPainel();
+    setInterval(atualizarPainel, 5000);  
+
+</script>
+</body>
+</html>
