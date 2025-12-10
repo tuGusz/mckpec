@@ -1,0 +1,88 @@
+/* Fonte Moderna e Limpa */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f4f6f9; /* Cinza bem claro empresarial */
+    color: #333;
+}
+
+/* Cor personalizada para a Navbar (Azul Profundo) */
+.bg-dark-blue {
+    background-color: #1e293b; 
+}
+
+/* Modal de Login Estilizado */
+#login-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(15, 23, 42, 0.9); /* Fundo escuro azulado */
+    backdrop-filter: blur(5px);
+    z-index: 9999;
+    display: flex; justify-content: center; align-items: center;
+}
+
+.login-box {
+    background: white;
+    padding: 2.5rem;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 400px;
+    border-top: 5px solid #0d6efd; /* Detalhe azul no topo */
+}
+
+/* Estilo dos Cards das Prefeituras */
+.card-status {
+    border: none;
+    border-radius: 10px;
+    background: white;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border-left: 5px solid #cbd5e1; /* Borda padrão cinza */
+}
+
+.card-status:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* Cores de Status (Borda lateral) */
+.status-Online { border-left-color: #10b981; } /* Verde Esmeralda */
+.status-Erro { border-left-color: #ef4444; }   /* Vermelho */
+.status-Offline { border-left-color: #64748b; opacity: 0.85; } /* Cinza Azulado */
+
+/* Badges e Etiquetas */
+.badge-servico {
+    font-weight: 500;
+    padding: 6px 10px;
+    border-radius: 6px;
+    margin-right: 5px;
+    margin-bottom: 5px;
+    font-size: 0.75rem;
+}
+
+/* Área de Hardware */
+.hardware-info {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    color: #475569;
+}
+
+.hardware-info i {
+    color: #64748b;
+}
+
+/* Botões de Ação */
+.btn-acao {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 5px;
+    width: 100%;
+    text-align: left;
+    border-radius: 6px;
+}
+
+.btn-acao:hover {
+    transform: translateX(2px); /* Pequeno movimento ao passar o mouse */
+    transition: transform 0.2s;
+}

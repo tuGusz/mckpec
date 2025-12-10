@@ -3,275 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel de Monitoramento MCK</title>
+    <title>Dashboard MCK | Monitoramento de Servidores</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     
+    <link rel="stylesheet" href="assets/css/style.css">
+
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-
-    <style>
-        body { background-color: #f0f2f5; }
-        .card-status { border-left: 5px solid gray; transition: transform 0.2s;}
-        .card-status:hover { transform: translateY(-5px); }
-        .status-Online { border-left-color: #198754; } 
-        .status-Erro { border-left-color: #dc3545; }   
-        .status-Offline { border-left-color: #6c757d; opacity: 0.8; } 
-        .badge-servico { font-size: 0.85em; margin-right: 5px; margin-bottom: 5px; display: inline-block; }
-        .hardware-info { font-size: 0.75rem; color: #555; }
-        .btn-acao { font-size: 0.75rem; margin-bottom: 5px; width: 100%; text-align: left; }
-        
-        /* Login Overlay */
-        #login-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); z-index: 9999;
-            display: flex; justify-content: center; align-items: center;
-        }
-        .login-box { background: white; padding: 2rem; border-radius: 10px; width: 350px; }
-    </style>
 </head>
 <body>
 
-<div id="login-overlay">
-    <div class="login-box shadow">
-        <h4 class="mb-3 text-center">Acesso Administrativo</h4>
-        <div class="mb-3">
-            <input type="email" id="email" class="form-control" placeholder="Email Admin">
-        </div>
-        <div class="mb-3">
-            <input type="password" id="senha" class="form-control" placeholder="Senha">
-        </div>
-        <button class="btn btn-primary w-100" onclick="fazerLogin()">Entrar</button>
-        <p id="msg-login" class="text-danger text-center mt-2" style="font-size: 0.8rem;"></p>
-        <div class="text-center mt-3">
-            <button class="btn btn-link btn-sm text-secondary" onclick="entrarModoLeitura()">Entrar como Visitante (Apenas Leitura)</button>
-        </div>
-    </div>
-</div>
-
-<nav class="navbar navbar-dark bg-dark mb-4">
-    <div class="container-fluid">
-        <span class="navbar-brand mb-0 h1">MCK Monitoramento - PEC</span>
-        <div>
-            <span class="text-white me-3" style="font-size: 0.8rem" id="user-display">Visitante</span>
-            <span class="text-white" style="font-size: 0.8rem" id="relogio">Atualizado: --:--:--</span>
-        </div>
-    </div>
-</nav>
-
-<div class="container">
-    <div class="row" id="painel-clientes">
-        <div class="col-12 text-center">
-            <div class="spinner-border text-primary" role="status"></div>
-            <p>Carregando dados dos municípios...</p>
-        </div>
-    </div>
-</div>
-
-<script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyBvYpxSx7hVBfYdAda3UM5TnDE-Uqcbl8Q",
-        authDomain: "monitorpec-72985.firebaseapp.com",
-        databaseURL: "https://monitorpec-72985-default-rtdb.firebaseio.com",
-        projectId: "monitorpec-72985",
-        storageBucket: "monitorpec-72985.firebasestorage.app",
-        messagingSenderId: "173305825794",
-        appId: "1:173305825794:web:bd9b1a38f3c65298dab51b",
-        measurementId: "G-2XFRT3B3P3"
-    };
- 
-    try {
-        firebase.initializeApp(firebaseConfig);
-    } catch(e) {
-        console.warn("Firebase SDK não configurado corretamente. Edite o HTML.");
-    }
-
-    let isUserAdmin = false;
-
-
-    function fazerLogin() {
-        const email = document.getElementById('email').value;
-        const senha = document.getElementById('senha').value;
-        const msg = document.getElementById('msg-login');
-
-        firebase.auth().signInWithEmailAndPassword(email, senha)
-            .then((userCredential) => {
-                // Sucesso
-                document.getElementById('login-overlay').style.display = 'none';
-                isUserAdmin = true;
-                document.getElementById('user-display').innerText = "Admin: " + userCredential.user.email;
-                document.getElementById('user-display').className = "text-success me-3 fw-bold";
-                atualizarPainel();
-            })
-            .catch((error) => {
-                msg.innerText = "Erro: " + error.message;
-            });
-    }
-
-    function entrarModoLeitura() {
-        document.getElementById('login-overlay').style.display = 'none';
-        isUserAdmin = false;
-        alert("Modo Leitura: Você poderá ver o status, mas os botões de comando darão erro.");
-        atualizarPainel();
-    }
-
-    async function enviarComando(municipio, comando) {
-        if (!isUserAdmin) {
-            alert("ACESSO NEGADO: Você precisa estar logado como Admin para enviar comandos.");
-            document.getElementById('login-overlay').style.display = 'flex';
-            return;
-        }
-
-        let textoAcao = "";
-        if(comando.includes('stop')) textoAcao = "PARAR";
-        if(comando.includes('start')) textoAcao = "INICIAR";
-        if(comando.includes('restart')) textoAcao = "REINICIAR";
-        
-        if(!confirm(`Deseja enviar o comando: "${comando}" para ${municipio}?`)) return;
-
-        try {
-            await firebase.database().ref('clientes/' + municipio + '/comando').set(comando);
-            alert("Comando enviado com sucesso via Autenticação Segura!");
-        } catch (error) {
-            alert("Erro de Permissão: " + error.message);
-        }
-    }
-
-
-    function parseDataPTBR(dataStr) {
-        if(!dataStr) return new Date(0);
-        const [dateValues, timeValues] = dataStr.split(' ');
-        const [day, month, year] = dateValues.split('/');
-        const [hours, minutes, seconds] = timeValues.split(':');
-        return new Date(+year, +month - 1, +day, +hours, +minutes, +seconds);
-    }
-
-    async function atualizarPainel() {
-        try {
-            document.getElementById('relogio').innerText = "Verificando: " + new Date().toLocaleTimeString();
+    <div id="login-overlay">
+        <div class="login-box shadow-lg">
+            <div class="text-center mb-4">
+                <h4 class="fw-bold text-primary">MCK Monitor</h4>
+                <p class="text-muted small">Acesso Administrativo</p>
+            </div>
             
-       
-            const URL_BANCO = "https://monitorpec-72985-default-rtdb.firebaseio.com/clientes.json";
-            const resposta = await fetch(URL_BANCO);
-            const dados = await resposta.json();
-             
-            const container = document.getElementById('painel-clientes');
-            container.innerHTML = '';  
+            <div class="form-floating mb-3">
+                <input type="email" id="email" class="form-control" placeholder="name@example.com">
+                <label for="email">Email Corporativo</label>
+            </div>
+            <div class="form-floating mb-3">
+                <input type="password" id="senha" class="form-control" placeholder="Password">
+                <label for="senha">Senha</label>
+            </div>
 
-            if (!dados) {
-                container.innerHTML = '<div class="alert alert-warning">Nenhum dado encontrado no servidor.</div>';
-                return;
-            }
-
-            const agora = new Date();
-
-            for (let municipio in dados) {
-                let info = dados[municipio];
-                
-         
-                let dataUltimaAtualizacao = parseDataPTBR(info.ultima_atualizacao);
-                let diferencaSegundos = (agora - dataUltimaAtualizacao) / 1000;
-                let agenteStatus = "Agente Online";
-                let badgeAgente = "bg-success";
-                
-                if (diferencaSegundos > 120) {
-                    agenteStatus = "Agente Parado/Offline";
-                    badgeAgente = "bg-secondary";
-                }
-
-           
-                let bordaClass = info.status_geral === 'Online' ? 'status-Online' : 'status-Erro';
-                let textoStatusGeral = info.status_geral === 'Online' ? 'ONLINE' : 'ERRO';
-                let corStatusGeral = info.status_geral === 'Online' ? 'success' : 'danger';
-
-                if (agenteStatus !== "Agente Online") {
-                    bordaClass = "status-Offline";
-                    textoStatusGeral = "OFFLINE";
-                    corStatusGeral = "secondary";
-                }
-
-                let listaErros = info.erros || []; 
-                let isPgOff = listaErros.includes("PostgreSQL OFF");
-                let isPecOff = listaErros.includes("PEC OFF");
-                let isGatewayOff = listaErros.includes("Gateway OFF");
-
-                let htmlPostgres = isPgOff
-                    ? `<span class="badge bg-danger badge-servico"><i class="bi bi-x-circle"></i> PostgreSQL OFF</span>`
-                    : `<span class="badge bg-success badge-servico"><i class="bi bi-check-circle"></i> PostgreSQL OK</span>`;
-
-                let htmlPEC = isPecOff
-                    ? `<span class="badge bg-danger badge-servico"><i class="bi bi-x-circle"></i> e-SUS PEC OFF</span>`
-                    : `<span class="badge bg-success badge-servico"><i class="bi bi-check-circle"></i> e-SUS PEC OK</span>`;
-
-                let htmlGateway = isGatewayOff
-                    ? `<span class="badge bg-danger badge-servico"><i class="bi bi-x-circle"></i> Gateway OFF</span>`
-                    : `<span class="badge bg-success badge-servico"><i class="bi bi-check-circle"></i> Gateway OK</span>`;
-
+            <button class="btn btn-primary w-100 py-2 fw-bold" onclick="fazerLogin()">
+                <i class="bi bi-box-arrow-in-right"></i> Acessar Painel
+            </button>
             
-                let btnPec = isPecOff 
-                    ? `<button class="btn btn-outline-success btn-sm btn-acao" onclick="enviarComando('${municipio}', 'start_esus')"><i class="bi bi-play-circle-fill"></i> Iniciar e-SUS</button>`
-                    : `<button class="btn btn-outline-danger btn-sm btn-acao" onclick="enviarComando('${municipio}', 'stop_esus')"><i class="bi bi-stop-circle"></i> Parar e-SUS</button>
-                       <button class="btn btn-outline-warning btn-sm btn-acao" onclick="enviarComando('${municipio}', 'restart_esus')"><i class="bi bi-arrow-clockwise"></i> Reiniciar e-SUS</button>`;
+            <p id="msg-login" class="text-danger text-center mt-3 small fw-bold"></p>
+            
+            <div class="text-center mt-4 border-top pt-3">
+                <button class="btn btn-link btn-sm text-secondary text-decoration-none" onclick="entrarModoLeitura()">
+                    Continuar como Visitante <i class="bi bi-eye"></i>
+                </button>
+            </div>
+        </div>
+    </div>
 
-                let btnPg = isPgOff
-                    ? `<button class="btn btn-outline-success btn-sm btn-acao" onclick="enviarComando('${municipio}', 'start_pg')"><i class="bi bi-play-circle-fill"></i> Iniciar PGSQL</button>`
-                    : `<button class="btn btn-outline-danger btn-sm btn-acao" onclick="enviarComando('${municipio}', 'stop_pg')"><i class="bi bi-database-dash"></i> Parar PGSQL</button>
-                       <button class="btn btn-outline-warning btn-sm btn-acao" onclick="enviarComando('${municipio}', 'restart_pg')"><i class="bi bi-arrow-repeat"></i> Reiniciar PGSQL</button>`;
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark-blue shadow-sm sticky-top">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand fw-bold" href="#">
+                <i class="bi bi-grid-1x2-fill me-2"></i> MCK Monitoramento
+            </a>
+            
+            <div class="d-flex align-items-center text-white">
+                <div class="me-4 text-end d-none d-md-block">
+                    <small class="d-block text-white-50" style="font-size: 0.7rem;">USUÁRIO</small>
+                    <span id="user-display" class="fw-semibold">Visitante</span>
+                </div>
+                <div class="text-end border-start ps-3 border-secondary">
+                    <small class="d-block text-white-50" style="font-size: 0.7rem;">ÚLTIMA VERIFICAÇÃO</small>
+                    <span id="relogio" class="font-monospace">--:--:--</span>
+                </div>
+            </div>
+        </div>
+    </nav>
 
-                let htmlBotoes = '';
-             
-                if (agenteStatus === "Agente Online") {
-                    htmlBotoes = `
-                        <div class="mt-3 pt-2 border-top">
-                            <h6 class="text-muted" style="font-size: 0.8rem">Ações de Controle:</h6>
-                            <div class="row g-1">
-                                <div class="col-6">${btnPec}</div>
-                                <div class="col-6">${btnPg}</div>
-                                <div class="col-12 mt-2">
-                                    <button class="btn btn-outline-primary btn-sm btn-acao" onclick="enviarComando('${municipio}', 'update_pec')"><i class="bi bi-cloud-arrow-down"></i> Atualizar PEC</button>
-                                    <button class="btn btn-outline-info btn-sm btn-acao" onclick="enviarComando('${municipio}', 'open_gateway')"><i class="bi bi-window-stack"></i> Abrir Gateway</button>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }
+    <div class="container-fluid px-4 mt-4">
+        <div class="row mb-4 align-items-center">
+            <div class="col">
+                <h5 class="text-secondary mb-0">Visão Geral dos Clientes</h5>
+                <p class="text-muted small">Monitoramento em tempo real dos serviços e-SUS e Gateway.</p>
+            </div>
+        </div>
 
-                let html = `
-                    <div class="col-md-4 mb-4">
-                        <div class="card shadow-sm card-status ${bordaClass}">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <h5 class="card-title m-0">${municipio}</h5>
-                                    <span class="badge bg-${corStatusGeral}">${textoStatusGeral}</span>
-                                </div>
-                                <span class="badge ${badgeAgente}" style="font-size:0.7rem"><i class="bi bi-robot"></i> ${agenteStatus}</span>
-                                <h6 class="card-subtitle my-2 text-muted" style="font-size: 0.8rem"><i class="bi bi-pc-display"></i> ${info.maquina || '?'}</h6>
-                                <div class="my-2">${htmlPostgres} ${htmlPEC} ${htmlGateway}</div>
-                                <div class="alert alert-light border p-2 hardware-info mb-0">
-                                    <div class="mb-1 border-bottom pb-1"><i class="bi bi-clock"></i> <strong>Última atualização:</strong><br> ${info.ultima_atualizacao}</div>
-                                    <div class="mt-1">
-                                        <strong>OS:</strong> ${info.hardware.sistema || '?'}<br>
-                                        <strong>CPU:</strong> ${info.hardware.processador || '?'}<br>
-                                        <strong>RAM:</strong> ${info.hardware.memoria_ram || '?'} | <strong>Disco:</strong> ${info.hardware.armazenamento || '?'}
-                                    </div>
-                                </div>
-                                ${htmlBotoes}
-                            </div>
-                        </div>
-                    </div>
-                `;
-                container.innerHTML += html;
-            }
+        <div class="row g-4" id="painel-clientes">
+            <div class="col-12 text-center py-5">
+                <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
+                <p class="mt-3 text-muted">Sincronizando com a base de dados...</p>
+            </div>
+        </div>
+    </div>
 
-        } catch (erro) {
-            console.error(erro);
-        }
-    }
+    <footer class="mt-5 py-3 text-center text-muted small">
+        &copy; 2025 MCK Soluções Tecnológicas. Todos os direitos reservados.
+    </footer>
 
-    atualizarPainel();
-    setInterval(atualizarPainel, 5000);
-
-</script>
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/app.js"></script>
 </body>
 </html>
