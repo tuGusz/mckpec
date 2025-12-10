@@ -37,21 +37,19 @@
 </div>
 
 <script>
-    const URL_BANCO = "https://monitorpec-72985-default-rtdb.firebaseio.com/clientes"; // Sem o .json aqui para facilitar a montagem
+    const URL_BANCO = "https://monitorpec-72985-default-rtdb.firebaseio.com/clientes";
 
-    
     async function enviarComando(municipio, comando) {
         if(!confirm(`Deseja enviar o comando: "${comando}" para ${municipio}?`)) return;
 
         const urlComando = `${URL_BANCO}/${municipio}/comando.json`;
         
         try {
-             
             await fetch(urlComando, {
                 method: 'PUT',
                 body: JSON.stringify(comando)
             });
-            alert("Comando enviado! O Agente executará em breve.");
+            alert("Comando enviado! Aguarde a execução.");
         } catch (error) {
             alert("Erro ao enviar comando: " + error);
         }
@@ -73,7 +71,6 @@
             const dados = await resposta.json();
              
             const container = document.getElementById('painel-clientes');
-          
             container.innerHTML = '';  
 
             if (!dados) {
@@ -85,8 +82,7 @@
 
             for (let municipio in dados) {
                 let info = dados[municipio];
-                
-   
+             
                 let dataUltimaAtualizacao = parseDataPTBR(info.ultima_atualizacao);
                 let diferencaSegundos = (agora - dataUltimaAtualizacao) / 1000;
                 let agenteStatus = "Agente Online";
@@ -96,8 +92,7 @@
                     agenteStatus = "Agente Parado/Offline";
                     badgeAgente = "bg-secondary";
                 }
-
-               
+ 
                 let bordaClass = info.status_geral === 'Online' ? 'status-Online' : 'status-Erro';
                 let textoStatusGeral = info.status_geral === 'Online' ? 'ONLINE' : 'ERRO';
                 let corStatusGeral = info.status_geral === 'Online' ? 'success' : 'danger';
@@ -108,22 +103,57 @@
                     corStatusGeral = "secondary";
                 }
 
-               
-                let listaErros = info.erros || []; 
                 
-                let htmlPostgres = listaErros.includes("PostgreSQL OFF") 
+                let listaErros = info.erros || []; 
+                let isPgOff = listaErros.includes("PostgreSQL OFF");
+                let isPecOff = listaErros.includes("PEC OFF");
+                let isGatewayOff = listaErros.includes("Gateway OFF");
+
+               
+                let htmlPostgres = isPgOff
                     ? `<span class="badge bg-danger badge-servico"><i class="bi bi-x-circle"></i> PostgreSQL OFF</span>`
                     : `<span class="badge bg-success badge-servico"><i class="bi bi-check-circle"></i> PostgreSQL OK</span>`;
 
-                let htmlPEC = listaErros.includes("PEC OFF") 
+                let htmlPEC = isPecOff
                     ? `<span class="badge bg-danger badge-servico"><i class="bi bi-x-circle"></i> e-SUS PEC OFF</span>`
                     : `<span class="badge bg-success badge-servico"><i class="bi bi-check-circle"></i> e-SUS PEC OK</span>`;
 
-                let htmlGateway = listaErros.includes("Gateway OFF") 
+                let htmlGateway = isGatewayOff
                     ? `<span class="badge bg-danger badge-servico"><i class="bi bi-x-circle"></i> Gateway OFF</span>`
                     : `<span class="badge bg-success badge-servico"><i class="bi bi-check-circle"></i> Gateway OK</span>`;
 
                  
+                let btnPec = '';
+                if (isPecOff) {
+                 
+                    btnPec = `<button class="btn btn-outline-success btn-sm btn-acao" onclick="enviarComando('${municipio}', 'start_esus')">
+                                <i class="bi bi-play-circle"></i> Iniciar e-SUS
+                              </button>`;
+                } else {
+                     
+                    btnPec = `<button class="btn btn-outline-danger btn-sm btn-acao" onclick="enviarComando('${municipio}', 'stop_esus')">
+                                <i class="bi bi-stop-circle"></i> Parar e-SUS
+                              </button>
+                              <button class="btn btn-outline-warning btn-sm btn-acao" onclick="enviarComando('${municipio}', 'restart_esus')">
+                                <i class="bi bi-arrow-clockwise"></i> Reiniciar e-SUS
+                              </button>`;
+                }
+
+                let btnPg = '';
+                if (isPgOff) {
+                    btnPg = `<button class="btn btn-outline-success btn-sm btn-acao" onclick="enviarComando('${municipio}', 'start_pg')">
+                                <i class="bi bi-play-circle"></i> Iniciar PGSQL
+                             </button>`;
+                } else {
+                    btnPg = `<button class="btn btn-outline-danger btn-sm btn-acao" onclick="enviarComando('${municipio}', 'stop_pg')">
+                                <i class="bi bi-database-dash"></i> Parar PGSQL
+                             </button>
+                             <button class="btn btn-outline-warning btn-sm btn-acao" onclick="enviarComando('${municipio}', 'restart_pg')">
+                                <i class="bi bi-arrow-repeat"></i> Reiniciar PGSQL
+                             </button>`;
+                }
+
+              
                 let htmlBotoes = '';
                 if (agenteStatus === "Agente Online") {
                     htmlBotoes = `
@@ -131,20 +161,10 @@
                             <h6 class="text-muted" style="font-size: 0.8rem">Ações de Controle:</h6>
                             <div class="row g-1">
                                 <div class="col-6">
-                                    <button class="btn btn-outline-danger btn-sm btn-acao" onclick="enviarComando('${municipio}', 'stop_esus')">
-                                        <i class="bi bi-stop-circle"></i> Parar e-SUS
-                                    </button>
-                                    <button class="btn btn-outline-warning btn-sm btn-acao" onclick="enviarComando('${municipio}', 'restart_esus')">
-                                        <i class="bi bi-arrow-clockwise"></i> Reiniciar e-SUS
-                                    </button>
+                                    ${btnPec}
                                 </div>
                                 <div class="col-6">
-                                    <button class="btn btn-outline-danger btn-sm btn-acao" onclick="enviarComando('${municipio}', 'stop_pg')">
-                                        <i class="bi bi-database-dash"></i> Parar PGSQL
-                                    </button>
-                                    <button class="btn btn-outline-warning btn-sm btn-acao" onclick="enviarComando('${municipio}', 'restart_pg')">
-                                        <i class="bi bi-arrow-repeat"></i> Reiniciar PGSQL
-                                    </button>
+                                    ${btnPg}
                                 </div>
                                 <div class="col-12">
                                     <button class="btn btn-outline-primary btn-sm btn-acao" onclick="enviarComando('${municipio}', 'update_pec')">
