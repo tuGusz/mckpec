@@ -48,7 +48,7 @@ footer {
     border-radius: 12px;
     width: 100%;
     max-width: 400px;
-    border-top: 5px solid #0d6efd; 
+    border-top: 5px solid #028008; 
 }
  
 .card-status {
@@ -106,4 +106,21 @@ footer {
 .btn-acao:hover {
     transform: translateX(2px);
     transition: transform 0.2s;
+}
+
+.text-brand {
+    color: #028008 !important;
+}
+
+.btn-brand {
+    background-color: #028008 !important;
+    border-color: #028008 !important;
+    color: white !important;
+    transition: all 0.3s ease;
+}
+
+.btn-brand:hover {
+    background-color: #026606 !important; 
+    border-color: #026606 !important;
+    transform: translateY(-1px);
 }
