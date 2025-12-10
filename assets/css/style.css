@@ -1,19 +1,42 @@
-/* Fonte Moderna e Limpa */
 body {
     font-family: 'Inter', sans-serif;
-    background-color: #f4f6f9; /* Cinza bem claro empresarial */
+    background-color: #f4f6f9;
     color: #333;
+    
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; 
 }
 
-/* Cor personalizada para a Navbar (Azul Profundo) */
+.conteudo-principal {
+    flex: 1;
+}
+
+footer {
+    margin-top: auto; 
+    background-color: white;
+    width: 100%;
+}
+
+.rodape-personalizado {
+    margin-top: auto; 
+    width: 100%;
+    background-color: #ffffff;     
+    border-top: 1px solid #dee2e6; 
+    color: #6c757d;               
+    text-align: center;            
+    padding-top: 1.5rem;        
+    padding-bottom: 1.5rem;       
+    font-size: 0.875em;          
+}
+
 .bg-dark-blue {
     background-color: #1e293b; 
 }
 
-/* Modal de Login Estilizado */
 #login-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(15, 23, 42, 0.9); /* Fundo escuro azulado */
+    background: rgba(15, 23, 42, 0.9);  
     backdrop-filter: blur(5px);
     z-index: 9999;
     display: flex; justify-content: center; align-items: center;
@@ -25,16 +48,15 @@ body {
     border-radius: 12px;
     width: 100%;
     max-width: 400px;
-    border-top: 5px solid #0d6efd; /* Detalhe azul no topo */
+    border-top: 5px solid #0d6efd; 
 }
-
-/* Estilo dos Cards das Prefeituras */
+ 
 .card-status {
     border: none;
     border-radius: 10px;
     background: white;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
-    border-left: 5px solid #cbd5e1; /* Borda padrão cinza */
+    border-left: 5px solid #cbd5e1;
 }
 
 .card-status:hover {
@@ -42,12 +64,11 @@ body {
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
-/* Cores de Status (Borda lateral) */
-.status-Online { border-left-color: #10b981; } /* Verde Esmeralda */
-.status-Erro { border-left-color: #ef4444; }   /* Vermelho */
-.status-Offline { border-left-color: #64748b; opacity: 0.85; } /* Cinza Azulado */
 
-/* Badges e Etiquetas */
+.status-Online { border-left-color: #10b981; } 
+.status-Erro { border-left-color: #ef4444; }   
+.status-Offline { border-left-color: #64748b; opacity: 0.85; }
+
 .badge-servico {
     font-weight: 500;
     padding: 6px 10px;
@@ -57,7 +78,7 @@ body {
     font-size: 0.75rem;
 }
 
-/* Área de Hardware */
+
 .hardware-info {
     background-color: #f8fafc;
     border: 1px solid #e2e8f0;
@@ -70,7 +91,7 @@ body {
     color: #64748b;
 }
 
-/* Botões de Ação */
+
 .btn-acao {
     font-size: 0.75rem;
     font-weight: 600;
@@ -83,6 +104,6 @@ body {
 }
 
 .btn-acao:hover {
-    transform: translateX(2px); /* Pequeno movimento ao passar o mouse */
+    transform: translateX(2px);
     transition: transform 0.2s;
 }

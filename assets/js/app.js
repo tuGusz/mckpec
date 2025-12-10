@@ -171,19 +171,32 @@ async function atualizarPainel() {
             let htmlBotoes = '';
             
             if (isOnline) {
-                // Lógica dinâmica dos botões
+                // --- BOTÕES DO E-SUS PEC ---
                 let btnPec = listaErros.includes("PEC OFF")
-                    ? `<button class="btn btn-outline-success btn-sm btn-acao" onclick="enviarComando('${municipio}', 'start_esus')"><i class="bi bi-play-fill"></i> Iniciar e-SUS</button>`
-                    : `<div class="btn-group w-100 mb-1">
-                         <button class="btn btn-outline-danger btn-sm btn-acao rounded-end-0" onclick="enviarComando('${municipio}', 'stop_esus')"><i class="bi bi-stop-fill"></i> Parar</button>
-                         <button class="btn btn-outline-warning btn-sm btn-acao rounded-start-0" onclick="enviarComando('${municipio}', 'restart_esus')"><i class="bi bi-arrow-clockwise"></i> Reiniciar</button>
+                    ? `<button class="btn btn-outline-success btn-sm btn-acao" onclick="enviarComando('${municipio}', 'start_esus')" title="Clique para iniciar o serviço do e-SUS PEC">
+                         <i class="bi bi-play-fill"></i> Iniciar e-SUS
+                       </button>`
+                    : `<div class="btn-group w-100 mb-1" role="group">
+                         <button class="btn btn-outline-danger btn-sm btn-acao rounded-end-0" onclick="enviarComando('${municipio}', 'stop_esus')" title="Parar o serviço do e-SUS imediatamente">
+                           <i class="bi bi-stop-fill"></i> Parar e-SUS
+                         </button>
+                         <button class="btn btn-outline-warning btn-sm btn-acao rounded-start-0" onclick="enviarComando('${municipio}', 'restart_esus')" title="Reiniciar o serviço do e-SUS (Stop + Start)">
+                           <i class="bi bi-arrow-clockwise"></i> Reiniciar
+                         </button>
                        </div>`;
 
+                // --- BOTÕES DO POSTGRESQL ---
                 let btnPg = listaErros.includes("PostgreSQL OFF")
-                    ? `<button class="btn btn-outline-success btn-sm btn-acao" onclick="enviarComando('${municipio}', 'start_pg')"><i class="bi bi-play-fill"></i> Iniciar PGSQL</button>`
-                    : `<div class="btn-group w-100 mb-1">
-                         <button class="btn btn-outline-danger btn-sm btn-acao rounded-end-0" onclick="enviarComando('${municipio}', 'stop_pg')"><i class="bi bi-stop-fill"></i> Parar</button>
-                         <button class="btn btn-outline-warning btn-sm btn-acao rounded-start-0" onclick="enviarComando('${municipio}', 'restart_pg')"><i class="bi bi-arrow-clockwise"></i> Reiniciar</button>
+                    ? `<button class="btn btn-outline-success btn-sm btn-acao" onclick="enviarComando('${municipio}', 'start_pg')" title="Clique para iniciar o banco de dados PostgreSQL">
+                         <i class="bi bi-play-fill"></i> Iniciar PGSQL
+                       </button>`
+                    : `<div class="btn-group w-100 mb-1" role="group">
+                         <button class="btn btn-outline-danger btn-sm btn-acao rounded-end-0" onclick="enviarComando('${municipio}', 'stop_pg')" title="Parar o serviço do banco de dados PostgreSQL">
+                           <i class="bi bi-stop-fill"></i> Parar PGSQL
+                         </button>
+                         <button class="btn btn-outline-warning btn-sm btn-acao rounded-start-0" onclick="enviarComando('${municipio}', 'restart_pg')" title="Reiniciar o banco de dados PostgreSQL">
+                           <i class="bi bi-arrow-clockwise"></i> Reiniciar
+                         </button>
                        </div>`;
 
                 htmlBotoes = `
@@ -193,12 +206,24 @@ async function atualizarPainel() {
                             <i class="bi bi-terminal text-muted"></i>
                         </div>
                         <div class="row g-2">
-                            <div class="col-6">${btnPec}</div>
-                            <div class="col-6">${btnPg}</div>
-                            <div class="col-12 mt-1">
+                            <div class="col-12 border-bottom pb-2 mb-2">
+                                <small class="text-muted fw-bold d-block mb-1" style="font-size: 0.7rem;">GERENCIAR APLICAÇÃO (PEC)</small>
+                                ${btnPec}
+                            </div>
+                            
+                            <div class="col-12">
+                                <small class="text-muted fw-bold d-block mb-1" style="font-size: 0.7rem;">GERENCIAR BANCO (POSTGRES)</small>
+                                ${btnPg}
+                            </div>
+
+                            <div class="col-12 mt-2 pt-2 border-top">
                                 <div class="d-grid gap-2">
-                                    <button class="btn btn-light border btn-sm btn-acao text-primary" onclick="enviarComando('${municipio}', 'update_pec')"><i class="bi bi-cloud-arrow-down-fill"></i> Atualizar Versão PEC</button>
-                                    <button class="btn btn-light border btn-sm btn-acao text-info" onclick="enviarComando('${municipio}', 'open_gateway')"><i class="bi bi-window-stack"></i> Interface Gateway</button>
+                                    <button class="btn btn-light border btn-sm btn-acao text-primary" onclick="enviarComando('${municipio}', 'update_pec')" title="Baixa e instala a versão mais recente do e-SUS PEC">
+                                        <i class="bi bi-cloud-arrow-down-fill"></i> Atualizar Versão PEC
+                                    </button>
+                                    <button class="btn btn-light border btn-sm btn-acao text-info" onclick="enviarComando('${municipio}', 'open_gateway')" title="Abre a interface gráfica do Power BI Gateway na máquina">
+                                        <i class="bi bi-window-stack"></i> Interface Gateway
+                                    </button>
                                 </div>
                             </div>
                         </div>
