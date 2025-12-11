@@ -63,6 +63,14 @@
             </a>
             
             <div class="d-flex align-items-center text-white">
+                <button class="btn btn-outline-light btn-sm me-3 position-relative" onclick="abrirModalAprovacao()">
+                    <i class="bi bi-shield-lock-fill"></i> Solicitações
+                    <span id="badge-pendentes" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display: none;">
+                        0
+                    </span>
+                </button>
+
+       
                 <div class="me-4 text-end d-none d-md-block">
                     <small class="d-block text-white-50" style="font-size: 0.7rem;">USUÁRIO</small>
                     <span id="user-display" class="fw-semibold">Visitante</span>
@@ -87,6 +95,24 @@
             <div class="col-12 text-center py-5">
                 <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
                 <p class="mt-3 text-muted">Sincronizando com a base de dados...</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalAprovacao" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-warning bg-opacity-25">
+                    <h5 class="modal-title fw-bold text-dark"><i class="bi bi-shield-check"></i> Aprovar Novos Agentes</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div class="list-group list-group-flush" id="lista-pendentes">
+                        <div class="text-center p-5 text-muted">
+                            <div class="spinner-border spinner-border-sm"></div> Carregando...
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

@@ -29,6 +29,7 @@ function fazerLogin() {
             userDisplay.className = "fw-bold text-info"; // Cor de destaque
             
             atualizarPainel(); // Recarrega para liberar botões
+            monitorarPendentes();
         })
         .catch((error) => {
             btn.innerHTML = 'Entrar';
@@ -292,6 +293,116 @@ async function atualizarPainel() {
         console.error(erro);
     }
 }
+
+// --- SISTEMA DE APROVAÇÃO (SECURITY) ---
+
+const URL_PENDENTES = "https://monitorpec-72985-default-rtdb.firebaseio.com/pendentes.json";
+
+// 1. Monitora a fila de espera em tempo real
+function monitorarPendentes() {
+    // Só roda se estiver logado (Admin)
+    if (!isUserAdmin) return; 
+
+    // Ouve mudanças na pasta pendentes
+    firebase.database().ref('pendentes').on('value', (snapshot) => {
+        const dados = snapshot.val();
+        const badge = document.getElementById('badge-pendentes');
+        const lista = document.getElementById('lista-pendentes');
+        
+        if (!dados) {
+            badge.style.display = 'none';
+            lista.innerHTML = '<div class="p-4 text-center text-muted">Nenhuma solicitação pendente.</div>';
+            return;
+        }
+
+        // Atualiza contador
+        const qtd = Object.keys(dados).length;
+        badge.innerText = qtd;
+        badge.style.display = 'block';
+
+        // Renderiza a lista no Modal
+        lista.innerHTML = '';
+        
+        for (let hwid in dados) {
+            let item = dados[hwid];
+            let html = `
+                <div class="list-group-item d-flex justify-content-between align-items-center p-3">
+                    <div>
+                        <h6 class="mb-1 fw-bold text-primary">${item.nome_solicitado}</h6>
+                        <small class="text-muted d-block" style="font-size: 0.75rem">
+                            <i class="bi bi-cpu"></i> ID: ${hwid.substring(0, 15)}...
+                        </small>
+                        <small class="text-muted" style="font-size: 0.75rem">
+                            <i class="bi bi-clock"></i> ${item.data_solicitacao}
+                        </small>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-outline-danger" onclick="rejeitarAgente('${hwid}')">
+                            <i class="bi bi-trash"></i> Recusar
+                        </button>
+                        <button class="btn btn-sm btn-success text-white" onclick="aprovarAgente('${hwid}', '${item.nome_solicitado}')">
+                            <i class="bi bi-check-lg"></i> APROVAR
+                        </button>
+                    </div>
+                </div>
+            `;
+            lista.innerHTML += html;
+        }
+    });
+}
+
+// 2. Abre o Modal
+window.abrirModalAprovacao = function() {
+    if (!isUserAdmin) {
+        alert("Faça login para gerenciar solicitações.");
+        return;
+    }
+    const modal = new bootstrap.Modal(document.getElementById('modalAprovacao'));
+    modal.show();
+}
+
+// 3. APROVAR: Move de Pendentes -> Clientes
+window.aprovarAgente = async function(hwid, nome) {
+    if (!confirm(`Confirma a aprovação de: ${nome}?`)) return;
+
+    try {
+        // Pega os dados completos do pendente
+        const snapshot = await firebase.database().ref('pendentes/' + hwid).once('value');
+        const dadosPendente = snapshot.val();
+
+        if (!dadosPendente) return;
+
+        // Prepara os dados limpos para a área de produção (/clientes)
+        const novoCliente = {
+            municipio: nome, // Nome oficial
+            status_geral: "Offline", // Começa offline até o agente bater ponto
+            ultima_atualizacao: "Aguardando...",
+            hardware: dadosPendente.hardware,
+            id_dispositivo: hwid,
+            comando: ""
+        };
+
+        // ATOMIC UPDATE: Faz tudo de uma vez para não ter erro
+        let updates = {};
+        updates['/clientes/' + hwid] = novoCliente; // Cria em clientes
+        updates['/pendentes/' + hwid] = null;       // Deleta de pendentes
+
+        await firebase.database().ref().update(updates);
+        
+        // alert("Agente aprovado com sucesso!"); // Opcional, o UI já atualiza sozinho
+    } catch (error) {
+        alert("Erro ao aprovar: " + error.message);
+    }
+}
+
+// 4. REJEITAR: Apenas deleta
+window.rejeitarAgente = async function(hwid) {
+    if (!confirm("Tem certeza? Isso vai apagar a solicitação.")) return;
+    await firebase.database().ref('pendentes/' + hwid).remove();
+}
+
+// Adicione esta chamada dentro da função fazerLogin() para iniciar o monitoramento
+// logo após o usuário colocar a senha correta.
 
 // Inicia o ciclo
 atualizarPainel();
