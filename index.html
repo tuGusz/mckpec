@@ -83,11 +83,49 @@
         </div>
     </nav>
 
-    <div class="container-fluid px-4 mt-4">
+    <div class="container-fluid px-4 mt-2">
         <div class="row mb-4 align-items-center">
             <div class="col">
-                <h5 class="text-secondary mb-0">Visão Geral dos Clientes</h5>
+                <h5 class="text-secondary mb-0">Visão Geral</h5>
                 <p class="text-muted small">Monitoramento em tempo real dos serviços e-SUS e Gateway.</p>
+            </div>
+        </div>
+
+        <div class="control-bar">
+            <div class="row align-items-center gy-3">
+                
+                <div class="col-lg-5 col-md-12">
+                    <div class="input-group search-input-group p-1">
+                        <span class="input-group-text search-icon pe-2"><i class="bi bi-search"></i></span>
+                        <input type="text" id="inputPesquisa" class="form-control search-input" placeholder="Buscar por Município, ID ou IP..." onkeyup="aplicarFiltros()">
+                    </div>
+                </div>
+
+                <div class="col-lg-7 col-md-12">
+                    <div class="d-flex flex-wrap justify-content-lg-end" id="filtros-container">
+                        <span class="align-self-center text-muted small me-2 d-none d-lg-block">Filtrar por:</span>
+                        
+                        <button class="btn btn-filter active" data-type="todos" onclick="setFiltro('todos', this)">
+                            Todos
+                        </button>
+                        
+                        <button class="btn btn-filter" data-type="online" onclick="setFiltro('online', this)">
+                            <i class="bi bi-wifi"></i> Online
+                        </button>
+                        
+                        <button class="btn btn-filter" data-type="erro" onclick="setFiltro('erro', this)">
+                            <i class="bi bi-exclamation-triangle"></i> Com Erro
+                        </button>
+                        
+                        <button class="btn btn-filter" data-type="pec_off" onclick="setFiltro('pec_off', this)">
+                            <i class="bi bi-hdd-network"></i> e-SUS Parado
+                        </button>
+
+                        <button class="btn btn-filter" data-type="offline" onclick="setFiltro('offline', this)">
+                            <i class="bi bi-wifi-off"></i> Offline
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
 

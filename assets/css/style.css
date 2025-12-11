@@ -28,6 +28,7 @@ footer {
     padding-top: 1.5rem;        
     padding-bottom: 1.5rem;       
     font-size: 0.875em;          
+    margin-top: 20px;
 }
 
 .bg-dark-blue {
@@ -124,3 +125,77 @@ footer {
     border-color: #026606 !important;
     transform: translateY(-1px);
 }
+
+/* --- BARRA DE CONTROLE (PESQUISA + FILTROS) --- */
+
+.control-bar {
+    background: white;
+    border-radius: 12px;
+    padding: 1rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    margin-bottom: 2rem;
+    border: 1px solid #e2e8f0;
+}
+
+/* Campo de Pesquisa Estilizado */
+.search-input-group {
+    background-color: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    transition: all 0.3s ease;
+}
+
+.search-input-group:focus-within {
+    background-color: white;
+    border-color: #028008; /* Verde da marca */
+    box-shadow: 0 0 0 3px rgba(2, 128, 8, 0.1);
+}
+
+.search-icon {
+    color: #94a3b8;
+    background: transparent;
+    border: none;
+}
+
+.search-input {
+    background: transparent;
+    border: none;
+    font-size: 0.95rem;
+    color: #334155;
+}
+
+.search-input:focus {
+    background: transparent;
+    box-shadow: none;
+    border: none;
+}
+
+/* Botões de Filtro (Estilo Chips) */
+.btn-filter {
+    border: 1px solid #e2e8f0;
+    background-color: white;
+    color: #64748b;
+    border-radius: 20px; /* Arredondado */
+    padding: 6px 16px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.btn-filter:hover {
+    background-color: #f1f5f9;
+    transform: translateY(-1px);
+}
+
+.btn-filter.active {
+    border-color: transparent;
+    color: white;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Cores específicas quando ativo */
+.btn-filter[data-type="todos"].active { background-color: #334155; }
+.btn-filter[data-type="online"].active { background-color: #10b981; }
+.btn-filter[data-type="erro"].active { background-color: #ef4444; }
+.btn-filter[data-type="offline"].active { background-color: #94a3b8; }
+.btn-filter[data-type="pec_off"].active { background-color: #f59e0b; }
