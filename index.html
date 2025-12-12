@@ -25,19 +25,31 @@
         <div class="login-box shadow-lg">
             <div class="text-center mb-4">
                 <img src="assets/img/logo.png" alt="MCK Logo" height="50" class="mb-3">
-                
                 <h4 class="fw-bold text-brand">Acesso Restrito</h4> 
-                
                 <p class="text-muted small">Informe suas credenciais administrativas</p>
             </div>
             
             <div class="form-floating mb-3">
-                <input type="email" id="email" class="form-control" placeholder="name@example.com">
+                <input type="email" id="email" class="form-control" placeholder="name@example.com" autocomplete="email">
                 <label for="email">Email Corporativo</label>
             </div>
-            <div class="form-floating mb-3">
-                <input type="password" id="senha" class="form-control" placeholder="Password">
-                <label for="senha">Senha</label>
+
+            <div class="input-group mb-3">
+                <div class="form-floating flex-grow-1">
+                    <input type="password" id="senha" class="form-control" placeholder="Password" style="border-right: 0;" autocomplete="current-password">
+                    <label for="senha">Senha</label>
+                </div>
+                <span class="input-group-text bg-white border-start-0" style="cursor: pointer;" onclick="toggleSenha()">
+                    <i class="bi bi-eye-slash" id="icon-senha"></i>
+                </span>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="lembrar"> <label class="form-check-label small text-muted" for="lembrar">
+                        Manter conectado
+                    </label>
+                </div>
             </div>
 
             <button class="btn btn-brand w-100 py-2 fw-bold" onclick="fazerLogin()">
@@ -70,15 +82,28 @@
                     </span>
                 </button>
 
-       
                 <div class="me-4 text-end d-none d-md-block">
                     <small class="d-block text-white-50" style="font-size: 0.7rem;">USUÁRIO</small>
                     <span id="user-display" class="fw-semibold">Visitante</span>
                 </div>
+
                 <div class="text-end border-start ps-3 border-secondary">
                     <small class="d-block text-white-50" style="font-size: 0.7rem;">ÚLTIMA VERIFICAÇÃO</small>
                     <span id="relogio" class="font-monospace">--:--:--</span>
                 </div>
+
+                <div class="ms-3 border-start ps-3 border-secondary">
+                    
+                    <button id="btn-logout" class="btn btn-outline-danger btn-sm d-none" onclick="fazerLogout()" title="Sair do sistema">
+                        <i class="bi bi-box-arrow-right"></i> Sair
+                    </button>
+
+                    <button id="btn-login" class="btn btn-outline-light btn-sm" onclick="abrirModalLogin()" title="Fazer Login">
+                        <i class="bi bi-person-lock"></i> Entrar
+                    </button>
+
+                </div>
+
             </div>
         </div>
     </nav>

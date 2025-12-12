@@ -8,48 +8,138 @@ const URL_BANCO_LEITURA = "https://monitorpec-72985-default-rtdb.firebaseio.com/
 const URL_SISTEMA_LEITURA = "https://monitorpec-72985-default-rtdb.firebaseio.com/sistema.json";
 const URL_PENDENTES = "https://monitorpec-72985-default-rtdb.firebaseio.com/pendentes.json";
 
+// --- INICIALIZAÇÃO SEGURA (SESSÃO PERSISTENTE) ---
+firebase.auth().onAuthStateChanged((user) => {
+    const btnLogout = document.getElementById('btn-logout');
+    const btnLogin = document.getElementById('btn-login');
+
+    if (user) {
+        console.log("Admin conectado:", user.email);
+        isUserAdmin = true;
+        
+        if(btnLogin) btnLogin.classList.add('d-none');
+        if(btnLogout) btnLogout.classList.remove('d-none');
+
+        document.getElementById('login-overlay').style.display = 'none';
+
+        const userDisplay = document.getElementById('user-display');
+        if(userDisplay) {
+            userDisplay.innerText = user.email;
+            userDisplay.className = "fw-bold text-info";
+        }
+
+        iniciarCicloAtualizacao();
+        monitorarPendentes();
+        
+    } else {
+        console.log("Modo Visitante.");
+        isUserAdmin = false;
+
+        // Esconde Logout, Mostra Login
+        if(btnLogout) btnLogout.classList.add('d-none');
+        if(btnLogin) btnLogin.classList.remove('d-none');
+
+        const userDisplay = document.getElementById('user-display');
+        if(userDisplay) {
+            userDisplay.innerText = "Visitante";
+            userDisplay.className = "fw-semibold";
+        }
+    }
+});
+
 function fazerLogin() {
     const email = document.getElementById('email').value;
     const senha = document.getElementById('senha').value;
+    const lembrar = document.getElementById('lembrar').checked; // Pega o estado do checkbox
     const msg = document.getElementById('msg-login');
     const btn = document.querySelector('#login-overlay button');
 
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Entrando...';
+    if (!email || !senha) {
+        msg.innerText = "Preencha e-mail e senha.";
+        return;
+    }
+
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Verificando...';
     btn.disabled = true;
+    msg.innerText = "";
 
-    firebase.auth().signInWithEmailAndPassword(email, senha)
+    const persistencia = lembrar ? firebase.auth.Auth.Persistence.LOCAL : firebase.auth.Auth.Persistence.SESSION;
+
+    firebase.auth().setPersistence(persistencia)
+        .then(() => {
+            return firebase.auth().signInWithEmailAndPassword(email, senha);
+        })
         .then((userCredential) => {
-            document.getElementById('login-overlay').style.opacity = '0';
-            setTimeout(() => {
-                document.getElementById('login-overlay').style.display = 'none';
-            }, 500);
-
-            isUserAdmin = true;
-            
-            const userDisplay = document.getElementById('user-display');
-            userDisplay.innerText = userCredential.user.email;
-            userDisplay.className = "fw-bold text-info";
-            
-            iniciarCicloAtualizacao();
-            monitorarPendentes();
+            btn.innerHTML = '<i class="bi bi-check-lg"></i> Sucesso!';
         })
         .catch((error) => {
-            btn.innerHTML = 'Entrar';
+            btn.innerHTML = '<i class="bi bi-box-arrow-in-right"></i> Acessar Painel';
             btn.disabled = false;
-            let erroMsg = error.message;
+            
+            let erroMsg = "Erro ao acessar.";
             if(error.code === 'auth/wrong-password') erroMsg = "Senha incorreta.";
             if(error.code === 'auth/user-not-found') erroMsg = "Usuário não encontrado.";
             if(error.code === 'auth/invalid-email') erroMsg = "Email inválido.";
+            if(error.code === 'auth/too-many-requests') erroMsg = "Muitas tentativas. Aguarde.";
+            
             msg.innerText = erroMsg;
+            console.error(error);
         });
+}
+
+function abrirModalLogin() {
+    const overlay = document.getElementById('login-overlay');
+    const msg = document.getElementById('msg-login');
+    const btn = document.querySelector('#login-overlay button');
+    
+    msg.innerText = "";
+    btn.innerHTML = '<i class="bi bi-box-arrow-in-right"></i> Acessar Painel';
+    btn.disabled = false;
+    document.getElementById('senha').value = ''; 
+
+    overlay.style.display = 'flex';
+    overlay.style.opacity = '1';
+}
+
+function toggleSenha() {
+    const input = document.getElementById('senha');
+    const icon = document.getElementById('icon-senha');
+    
+    if (input.type === "password") {
+        input.type = "text";
+        icon.classList.remove('bi-eye-slash');
+        icon.classList.add('bi-eye');
+    } else {
+        input.type = "password";
+        icon.classList.remove('bi-eye');
+        icon.classList.add('bi-eye-slash');
+    }
+}
+
+
+function fazerLogout() {
+    if(!confirm("Deseja realmente sair do sistema?")) return;
+
+    firebase.auth().signOut().then(() => {
+        isUserAdmin = false;
+        document.getElementById('painel-clientes').innerHTML = '';
+        location.reload();
+    }).catch((error) => {
+        console.error('Erro ao sair:', error);
+    });
 }
 
 function entrarModoLeitura() {
     document.getElementById('login-overlay').style.display = 'none';
     isUserAdmin = false;
+    const userDisplay = document.getElementById('user-display');
+    if(userDisplay) {
+        userDisplay.innerText = "Visitante";
+        userDisplay.className = "fw-semibold";
+    }
+
     iniciarCicloAtualizacao();
 }
-
 window.setFiltro = function(tipo, btnElement) {
     filtroAtual = tipo;
     const container = document.getElementById('filtros-container');
