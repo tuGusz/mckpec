@@ -395,11 +395,29 @@ async function enviarComando(hwid, nomeExibicao, comando) {
 }
  
 function parseDataPTBR(dataStr) {
-    if(!dataStr) return new Date(0);
-    const [dateValues, timeValues] = dataStr.split(' ');
-    const [day, month, year] = dateValues.split('/');
-    const [hours, minutes, seconds] = timeValues.split(':');
-    return new Date(+year, +month - 1, +day, +hours, +minutes, +seconds);
+    // 1. Se for vazio ou nulo, retorna data zero (1970)
+    if (!dataStr) return new Date(0);
+    
+    // 2. Se for o texto padrão de espera, retorna data zero
+    if (dataStr === "Aguardando...") return new Date(0);
+
+    // 3. Verifica se tem o formato correto "DD/MM/AAAA HH:MM:SS" (tem que ter espaço)
+    if (dataStr.indexOf(' ') === -1) return new Date(0);
+
+    try {
+        const [dateValues, timeValues] = dataStr.split(' ');
+        
+        // Proteção extra: se faltar a parte da hora
+        if (!timeValues) return new Date(0);
+
+        const [day, month, year] = dateValues.split('/');
+        const [hours, minutes, seconds] = timeValues.split(':');
+        
+        return new Date(+year, +month - 1, +day, +hours, +minutes, +seconds);
+    } catch (e) {
+        console.error("Erro ao converter data:", dataStr);
+        return new Date(0); // Em caso de erro, não trava o site
+    }
 }
 
 function monitorarPendentes() {
@@ -467,7 +485,5 @@ window.rejeitarAgente = async function(hwid) {
     if (!confirm("Recusar solicitação?")) return;
     await firebase.database().ref('pendentes/' + hwid).remove();
 }
-
-atualizarPainel();
-setInterval(atualizarPainel, 5000);
+ 
 iniciarCicloAtualizacao();
