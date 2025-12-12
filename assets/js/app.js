@@ -249,7 +249,7 @@ function renderizarCards() {
         let diferencaSegundos = (agora - dataUltimaAtualizacao) / 1000;
         let isOnline = diferencaSegundos <= 120;
 
-        let isUpdating = (info.comando === 'update_pec');
+        let isUpdating = (info.comando === 'update_pec' || info.status_geral === 'Atualizando');
 
         let statusBadge = isOnline 
             ? `<span class="badge bg-success bg-opacity-10 text-success border border-success"><i class="bi bi-wifi"></i> Online</span>`
