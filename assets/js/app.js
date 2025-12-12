@@ -185,13 +185,18 @@ function renderizarCards() {
             ? `<span class="badge bg-danger text-white me-1 mb-1"><i class="bi bi-x-circle-fill"></i> ${nome}</span>` 
             : `<span class="badge bg-light text-dark border me-1 mb-1"><i class="bi bi-check-circle-fill text-success"></i> ${nome}</span>`;
 
+        let versaoPec = info.versao_pec || "N/A";
+        let htmlVersao = versaoPec !== "N/A" 
+                ? `<span class="badge bg-primary bg-opacity-10 text-primary border border-primary me-1 mb-1"><i class="bi bi-tag-fill"></i> v${versaoPec}</span>`
+                : `<span class="badge bg-light text-muted border me-1 mb-1"><i class="bi bi-question-circle"></i> Ver. ?</span>`;
+
         let htmlServicos = `
-            <div class="d-flex flex-wrap mb-3">
-                ${makeBadge("PGSQL", listaErros.includes("PostgreSQL OFF"))}
-                ${makeBadge("e-SUS", listaErros.includes("PEC OFF"))}
-                ${makeBadge("Gateway", listaErros.includes("Gateway OFF"))}
-            </div>
-        `;
+                <div class="d-flex flex-wrap mb-3 align-items-center">
+                    ${htmlVersao} ${makeBadge("PGSQL", listaErros.includes("PostgreSQL OFF"))}
+                    ${makeBadge("e-SUS", listaErros.includes("PEC OFF"))}
+                    ${makeBadge("Gateway", listaErros.includes("Gateway OFF"))}
+                </div>
+            `;
 
         // Botões
         let htmlBotoes = '';
