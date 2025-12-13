@@ -327,11 +327,21 @@ function renderizarCards() {
         let cardExtraClasses = '';
         
         if (isUpdating) {
-            cardExtraClasses = 'card-updating'; // Aplica o Blur
+            cardExtraClasses = 'card-updating'; 
+            
+            // Pega a mensagem do banco ou usa uma padrão
+            let mensagemLog = info.log_acao || "Preparando ambiente...";
+
             overlayHtml = `
                 <div class="update-overlay">
-                    <div class="spinner-border spinner-update" role="status"></div>
-                    <div class="text-update"><i class="bi bi-arrow-repeat"></i> O PEC está sendo atualizado...</div>
+                    <div class="spinner-border spinner-update text-light" role="status"></div>
+                    <div class="text-update mt-3 fw-bold text-white">
+                        <i class="bi bi-arrow-repeat"></i> Atualizando PEC...
+                    </div>
+                    
+                    <div class="mt-2 px-3 py-1 rounded bg-black bg-opacity-50 text-warning font-monospace" style="font-size: 0.75rem; max-width: 90%;">
+                        > ${mensagemLog}
+                    </div>
                 </div>
             `;
         }
