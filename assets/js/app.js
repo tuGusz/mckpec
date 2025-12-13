@@ -328,14 +328,13 @@ function renderizarCards() {
         
         if (isUpdating) {
             cardExtraClasses = 'card-updating'; 
-            
-            // Pega a mensagem do banco ou usa uma padrão
             let mensagemLog = info.log_acao || "Preparando ambiente...";
 
             overlayHtml = `
                 <div class="update-overlay">
-                    <div class="spinner-border spinner-update text-light" role="status"></div>
-                    <div class="text-update mt-3 fw-bold text-white">
+                    <div class="spinner-border spinner-update" role="status"></div>
+                    
+                    <div class="text-update mt-3 fw-bold">
                         <i class="bi bi-arrow-repeat"></i> Atualizando PEC...
                     </div>
                     
