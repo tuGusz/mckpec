@@ -98,6 +98,10 @@
                         <i class="bi bi-box-arrow-right"></i> Sair
                     </button>
 
+                    <button class="btn btn-outline-info btn-sm me-2" onclick="toggleConsoleLogs()">
+                        <i class="bi bi-terminal"></i> Logs
+                    </button>
+
                     <button id="btn-login" class="btn btn-outline-light btn-sm" onclick="abrirModalLogin()" title="Fazer Login">
                         <i class="bi bi-person-lock"></i> Entrar
                     </button>
@@ -177,6 +181,21 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+   
+
+    <div id="console-container" class="console-floating d-none shadow-lg">
+        <div class="console-header d-flex justify-content-between align-items-center">
+            <small class="fw-bold"><i class="bi bi-terminal-fill me-2"></i>CONSOLE EM TEMPO REAL</small>
+            <div>
+                <button class="btn btn-sm text-white-50" onclick="limparConsole()" title="Limpar"><i class="bi bi-eraser"></i></button>
+                <button class="btn btn-sm text-white" onclick="toggleConsoleLogs()"><i class="bi bi-x-lg"></i></button>
+            </div>
+        </div>
+        <div id="console-body" class="console-body custom-scrollbar">
+            <div class="log-entry text-muted fst-italic">Console iniciado. Aguardando eventos...</div>
         </div>
     </div>
 

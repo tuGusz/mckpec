@@ -3,6 +3,7 @@ let dadosGlobais = {};
 let dadosSistema = {}; 
 let filtroAtual = 'todos';
 let termoPesquisa = '';
+let historicoLogs = {};  
 
 const URL_BANCO_LEITURA = "https://monitorpec-72985-default-rtdb.firebaseio.com/clientes.json";
 const URL_SISTEMA_LEITURA = "https://monitorpec-72985-default-rtdb.firebaseio.com/sistema.json";
@@ -243,8 +244,21 @@ function renderizarCards() {
     listaFiltrada.forEach(info => {
         let hwid = info.hwid;
         let nomeExibicao = info.municipio || info.nome_municipio || "Sem Nome"; 
-        let hwInfo = info.hardware || {};
 
+        if (info.log_acao && info.log_acao !== "" && historicoLogs[hwid] !== info.log_acao) {
+            // É uma mensagem nova! Adiciona ao console.
+            adicionarLogConsole(nomeExibicao, info.log_acao);
+            // Atualiza o histórico para não repetir na próxima verificação (5s depois)
+            historicoLogs[hwid] = info.log_acao;
+        }
+        // Se o log for vazio, apenas atualiza o histórico para permitir nova msg igual a anterior no futuro
+        if (!info.log_acao) {
+            historicoLogs[hwid] = "";
+        }
+        // -----------------------------------------------------
+
+        let hwInfo = info.hardware || {};
+       
         let dataUltimaAtualizacao = parseDataPTBR(info.ultima_atualizacao);
         let diferencaSegundos = (agora - dataUltimaAtualizacao) / 1000;
         let isOnline = diferencaSegundos <= 120;
@@ -461,6 +475,40 @@ function monitorarPendentes() {
             lista.innerHTML += html;
         }
     });
+}
+
+// --- FUNÇÕES DO CONSOLE ---
+function toggleConsoleLogs() {
+    const consoleDiv = document.getElementById('console-container');
+    if (consoleDiv.classList.contains('d-none')) {
+        consoleDiv.classList.remove('d-none');
+    } else {
+        consoleDiv.classList.add('d-none');
+    }
+}
+
+function limparConsole() {
+    document.getElementById('console-body').innerHTML = '<div class="log-entry text-muted fst-italic">Console limpo.</div>';
+}
+
+function adicionarLogConsole(nome, msg) {
+    if (!msg) return; // Ignora logs vazios
+    
+    const consoleBody = document.getElementById('console-body');
+    const hora = new Date().toLocaleTimeString('pt-BR');
+    
+    // Cria a linha do log
+    const div = document.createElement('div');
+    div.className = 'log-entry';
+    div.innerHTML = `
+        <span class="log-time">[${hora}]</span>
+        <span class="log-host">${nome}:</span>
+        <span class="log-msg">${msg}</span>
+    `;
+    
+    // Adiciona e rola para o final
+    consoleBody.appendChild(div);
+    consoleBody.scrollTop = consoleBody.scrollHeight;
 }
 
 window.abrirModalAprovacao = function() {
