@@ -184,7 +184,32 @@
         </div>
     </div>
 
-   
+    <div class="modal fade" id="modalDestruicao" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-danger">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-exclamation-octagon-fill"></i> DELETAR MUNICÍPIO</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning small">
+                        <i class="bi bi-cone-striped"></i> <strong>Ação Irreversível:</strong>
+                        Isso irá desinstalar o serviço, apagar os arquivos locais e remover este agente do painel permanentemente.
+                    </div>
+                    <p class="mb-2">Para confirmar, digite a <strong>Senha de Instalação</strong> definida neste computador:</p>
+                    
+                    <input type="password" id="inputSenhaDestruicao" class="form-control text-center fs-5" placeholder="Senha do MCK" autocomplete="off">
+                    <input type="hidden" id="hwidDestruicao">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger fw-bold" onclick="confirmarDestruicao()">
+                        <i class="bi bi-trash-fill"></i> EXECUTAR DESTRUIÇÃO
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div id="console-container" class="console-floating d-none shadow-lg">
         <div class="console-header d-flex justify-content-between align-items-center">

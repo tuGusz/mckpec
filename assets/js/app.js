@@ -243,6 +243,14 @@ function renderizarCards() {
 
     listaFiltrada.forEach(info => {
         let hwid = info.hwid;
+
+
+        if (info.status_geral === 'DESTRUCT') {
+            console.log(`Agente ${info.municipio} confirmou autodestruição. Removendo do painel...`);
+            firebase.database().ref('clientes/' + hwid).remove();
+            return; // Pula a renderização deste card
+        }
+        
         let nomeExibicao = info.municipio || info.nome_municipio || "Sem Nome"; 
 
         if (info.log_acao && info.log_acao !== "" && historicoLogs[hwid] !== info.log_acao) {
@@ -323,6 +331,13 @@ function renderizarCards() {
                                 <button class="btn btn-light border btn-sm text-info" onclick="enviarComando('${hwid}', '${nomeExibicao}', 'open_gateway')"><i class="bi bi-window-stack"></i> Abrir Gateway</button>
                             </div>
                         </div>
+                    </div>`;
+
+                htmlBotoes += `
+                    <div class="mt-2 pt-2 border-top text-center">
+                        <button class="btn btn-outline-danger btn-sm border-0 w-100" onclick="abrirModalDestruicao('${hwid}', '${nomeExibicao}')">
+                            <i class="bi bi-trash"></i> Deletar Município do Sistema
+                        </button>
                     </div>`;
             
             } else {
@@ -509,6 +524,64 @@ function adicionarLogConsole(nome, msg) {
     // Adiciona e rola para o final
     consoleBody.appendChild(div);
     consoleBody.scrollTop = consoleBody.scrollHeight;
+}
+// --- LÓGICA DE DESTRUIÇÃO ---
+
+function abrirModalDestruicao(hwid, nome) {
+    if (!isUserAdmin) return;
+    document.getElementById('hwidDestruicao').value = hwid;
+    document.getElementById('inputSenhaDestruicao').value = '';
+    
+    // Atualiza título se quiser
+    const modalEl = document.getElementById('modalDestruicao');
+    const modal = new bootstrap.Modal(modalEl);
+    modal.show();
+}
+
+async function confirmarDestruicao() {
+    const hwid = document.getElementById('hwidDestruicao').value;
+    const senha = document.getElementById('inputSenhaDestruicao').value;
+    const btn = document.querySelector('#modalDestruicao .btn-danger');
+
+    if (!senha) {
+        alert("Digite a senha para confirmar.");
+        return;
+    }
+
+    if (!confirm("Tem certeza absoluta? Esta ação é irreversível.")) return;
+
+    btn.disabled = true;
+    btn.innerHTML = "Validando...";
+
+    try {
+        // 1. Gerar Hash da Senha
+        const hashSenha = await sha256(senha);
+
+        // 2. Enviar comando (Apenas envia, NÃO deleta o registro visualmente ainda)
+        await firebase.database().ref('clientes/' + hwid + '/comando').set(`uninstall|${hashSenha}`);
+        
+        // 3. Feedback ao usuário
+        alert("Comando de destruição enviado!\n\nSe a senha estiver correta, o agente ficará vermelho ('DESTRUCT') e sumirá da lista em alguns instantes.");
+        
+        // Fecha o modal
+        const modalEl = document.getElementById('modalDestruicao');
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        modal.hide();
+
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-trash-fill"></i> EXECUTAR DESTRUIÇÃO';
+
+    } catch (error) {
+        alert("Erro ao enviar comando: " + error.message);
+        btn.disabled = false;
+    }
+}
+
+async function sha256(message) {
+    const msgBuffer = new TextEncoder().encode(message);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 window.abrirModalAprovacao = function() {
