@@ -290,12 +290,17 @@ function renderizarCards() {
         let versaoPec = info.versao_pec || "N/A";
         let isDesatualizado = compararVersoes(versaoPec, versaoMeta) < 0; // Se versao local < meta
 
+        let versaoAgente = info.versao_agente || "?";
+
         let htmlVersao = versaoPec !== "N/A" 
                 ? `<span class="badge bg-primary bg-opacity-10 text-primary border border-primary me-1 mb-1" title="Versão Mais Recente: ${versaoMeta}"><i class="bi bi-tag-fill"></i> v${versaoPec}</span>`
                 : `<span class="badge bg-light text-muted border me-1 mb-1"><i class="bi bi-question-circle"></i> Ver. ?</span>`;
 
+        let htmlAgente = `<span class="badge bg-dark text-white border me-1 mb-1" title="Versão do Agente MCK"><i class="bi bi-robot"></i> MCK v${versaoAgente}</span>`;
+
         let htmlServicos = `
                 <div class="d-flex flex-wrap mb-3 align-items-center">
+                    ${htmlAgente}
                     ${htmlVersao} ${makeBadge("PGSQL", listaErros.includes("PostgreSQL OFF"))}
                     ${makeBadge("e-SUS", listaErros.includes("PEC OFF"))}
                     ${makeBadge("Gateway", listaErros.includes("Gateway OFF"))}
