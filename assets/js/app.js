@@ -269,7 +269,7 @@ function renderizarCards() {
        
         let dataUltimaAtualizacao = parseDataPTBR(info.ultima_atualizacao);
         let diferencaSegundos = (agora - dataUltimaAtualizacao) / 1000;
-        let isOnline = diferencaSegundos <= 120;
+        let isOnline = diferencaSegundos <= 600;
 
         let isUpdating = (info.comando === 'update_pec' || info.status_geral === 'Atualizando');
 
