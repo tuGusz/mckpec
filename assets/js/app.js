@@ -321,7 +321,17 @@ function renderizarCards() {
 
                 let btnUpdate = '';
                 if (isDesatualizado) {
-                    btnUpdate = `<button class="btn btn-light border btn-sm text-primary" onclick="enviarComando('${hwid}', '${nomeExibicao}', 'update_pec')"><i class="bi bi-cloud-arrow-down-fill"></i> Atualizar para v${versaoMeta}</button>`;
+                   btnUpdate = `
+                        <div class="border-top pt-2 mt-2">
+                            <div class="form-check form-switch d-flex justify-content-center mb-2">
+                                <input class="form-check-input me-2" type="checkbox" id="chk-bg-${hwid}">
+                                <label class="form-check-label text-muted small" for="chk-bg-${hwid}" style="font-size:0.7rem;">Forçar Atualização do PEC em Background</label>
+                            </div>
+                            <button class="btn btn-light border btn-sm text-primary w-100" onclick="enviarComandoUpdate('${hwid}', '${nomeExibicao}')">
+                                <i class="bi bi-cloud-arrow-down-fill"></i> Atualizar para v${versaoMeta}
+                            </button>
+                        </div>
+                    `;
                 } else {
                     btnUpdate = `<button class="btn btn-light border btn-sm text-muted" disabled style="background-color: #f0fdf4; border-color: #bbf7d0 !important; color: #166534 !important;"><i class="bi bi-check-circle-fill"></i> PEC Atualizado</button>`;
                 }
@@ -620,5 +630,23 @@ window.rejeitarAgente = async function(hwid) {
     if (!confirm("Recusar solicitação?")) return;
     await firebase.database().ref('pendentes/' + hwid).remove();
 }
- 
+
+window.enviarComandoUpdate = function(hwid, nomeExibicao) {
+    const chk = document.getElementById(`chk-bg-${hwid}`);
+    const forceBackground = chk && chk.checked;
+    
+    const comando = forceBackground ? 'update_pec_background' : 'update_pec';
+    const modoTexto = forceBackground ? "MODO INVISÍVEL (Background)" : "MODO VISUAL (Janela)";
+
+    if (!isUserAdmin) {
+        alert("Faça login para realizar essa ação.");
+        return;
+    }
+
+    if(!confirm(`Confirmação de Atualização:\n\nMunicípio: ${nomeExibicao}\nModo: ${modoTexto}\n\nDeseja continuar?`)) return;
+
+    firebase.database().ref('clientes/' + hwid + '/comando').set(comando)
+        .catch(err => alert("Erro: " + err.message));
+}
+
 iniciarCicloAtualizacao();

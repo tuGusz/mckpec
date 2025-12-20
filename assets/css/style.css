@@ -294,3 +294,76 @@ footer {
 .custom-scrollbar::-webkit-scrollbar-track { background: #0f172a; }
 .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+.login-wrapper {
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  background: #f8fafc;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.login-art {
+  display: flex;
+  align-items: center;      /* NÃO flex-end */
+  justify-content: center;
+  gap: 40px;
+  padding-left: 60px;
+}
+
+.shape {
+  position: relative;
+  border-radius: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: transform 0.15s ease-out;
+  will-change: transform;
+}
+
+.shape.orange {
+  width: 220px;
+  height: 140px;
+  background: #f97316;
+  border-radius: 140px 140px 40px 40px;
+}
+
+.shape.purple.tall {
+  width: 90px;
+  height: 260px;
+  background: #7c3aed;
+}
+
+.shape.yellow {
+  width: 90px;
+  height: 180px;
+  background: #facc15;
+  border-radius: 90px;
+}
+
+.eye {
+  width: 18px;
+  height: 18px;
+  background: white;
+  border-radius: 50%;
+  position: absolute;
+}
+
+.eye::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  background: black;
+  border-radius: 50%;
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  transition: transform 0.1s linear;
+}
+
+.eye.left { left: 35%; top: 40%; }
+.eye.right { right: 35%; top: 40%; }
+.eye.single { top: 45%; }
+.eye::after {
+  transform: translate(var(--px, 0), var(--py, 0));
+}
