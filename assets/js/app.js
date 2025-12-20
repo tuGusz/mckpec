@@ -572,7 +572,7 @@ function renderizarCards() {
                 let btnUpdate = '';
                 if (isDesatualizado) {
                     btnUpdate = `
-                        <div class="border-top pt-2 mt-2">
+                        <div>
                             <div class="form-check form-switch d-flex justify-content-center mb-2">
                                 <input class="form-check-input me-2" type="checkbox" id="${chkId}" ${checkedStr}>
                                 <label class="form-check-label text-muted small" for="${chkId}" style="font-size:0.7rem;">Forçar Atualização do PEC em Background</label>
@@ -807,6 +807,7 @@ function abrirModalDestruicao(hwid, nome) {
     modal.show();
 }
 
+
 async function confirmarDestruicao() {
     const hwid = document.getElementById('hwidDestruicao').value;
     const senha = document.getElementById('inputSenhaDestruicao').value;
@@ -820,17 +821,28 @@ async function confirmarDestruicao() {
     if (!confirm("Tem certeza absoluta? Esta ação é irreversível.")) return;
 
     btn.disabled = true;
-    btn.innerHTML = "Validando...";
+    btn.innerHTML = "Processando...";
 
     try {
         // 1. Gerar Hash da Senha
         const hashSenha = await sha256(senha);
 
-        // 2. Enviar comando (Apenas envia, NÃO deleta o registro visualmente ainda)
+        // 2. Tenta enviar o comando (Para o caso dele estar vivo)
         await firebase.database().ref('clientes/' + hwid + '/comando').set(`uninstall|${hashSenha}`);
         
-        // 3. Feedback ao usuário
-        alert("Comando de destruição enviado!\n\nSe a senha estiver correta, o agente ficará vermelho ('DESTRUCT') e sumirá da lista em alguns instantes.");
+        // --- NOVA LÓGICA: DELEÇÃO FORÇADA PARA AGENTES MORTOS ---
+        // Verifica o status atual antes de decidir
+        const snapshot = await firebase.database().ref('clientes/' + hwid + '/status_geral').once('value');
+        const statusAtual = snapshot.val();
+
+        // Se NÃO estiver 'Online' (está Offline, Erro, ou é aquele card 'Aguardando ID'), deleta na marra
+        if (statusAtual !== 'Online') {
+            await firebase.database().ref('clientes/' + hwid).remove();
+            alert("Agente estava OFFLINE. O registro foi removido manualmente do banco de dados.");
+        } else {
+            alert("Comando de autodestruição enviado para o Agente Online.\nAguarde ele processar e sumir da tela.");
+        }
+        // ---------------------------------------------------------
         
         // Fecha o modal
         const modalEl = document.getElementById('modalDestruicao');
@@ -841,10 +853,49 @@ async function confirmarDestruicao() {
         btn.innerHTML = '<i class="bi bi-trash-fill"></i> EXECUTAR DESTRUIÇÃO';
 
     } catch (error) {
-        alert("Erro ao enviar comando: " + error.message);
+        alert("Erro ao processar: " + error.message);
         btn.disabled = false;
     }
 }
+
+// async function confirmarDestruicao() {
+//     const hwid = document.getElementById('hwidDestruicao').value;
+//     const senha = document.getElementById('inputSenhaDestruicao').value;
+//     const btn = document.querySelector('#modalDestruicao .btn-danger');
+
+//     if (!senha) {
+//         alert("Digite a senha para confirmar.");
+//         return;
+//     }
+
+//     if (!confirm("Tem certeza absoluta? Esta ação é irreversível.")) return;
+
+//     btn.disabled = true;
+//     btn.innerHTML = "Validando...";
+
+//     try {
+//         // 1. Gerar Hash da Senha
+//         const hashSenha = await sha256(senha);
+
+//         // 2. Enviar comando (Apenas envia, NÃO deleta o registro visualmente ainda)
+//         await firebase.database().ref('clientes/' + hwid + '/comando').set(`uninstall|${hashSenha}`);
+        
+//         // 3. Feedback ao usuário
+//         alert("Comando de destruição enviado!\n\nSe a senha estiver correta, o agente ficará vermelho ('DESTRUCT') e sumirá da lista em alguns instantes.");
+        
+//         // Fecha o modal
+//         const modalEl = document.getElementById('modalDestruicao');
+//         const modal = bootstrap.Modal.getInstance(modalEl);
+//         modal.hide();
+
+//         btn.disabled = false;
+//         btn.innerHTML = '<i class="bi bi-trash-fill"></i> EXECUTAR DESTRUIÇÃO';
+
+//     } catch (error) {
+//         alert("Erro ao enviar comando: " + error.message);
+//         btn.disabled = false;
+//     }
+// }
 
 async function sha256(message) {
     const msgBuffer = new TextEncoder().encode(message);
