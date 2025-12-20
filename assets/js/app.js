@@ -575,7 +575,7 @@ function renderizarCards() {
                         <div class="border-top pt-2 mt-2">
                             <div class="form-check form-switch d-flex justify-content-center mb-2">
                                 <input class="form-check-input me-2" type="checkbox" id="${chkId}" ${checkedStr}>
-                                <label class="form-check-label text-muted small" for="${chkId}" style="font-size:0.7rem;">Forçar Background</label>
+                                <label class="form-check-label text-muted small" for="${chkId}" style="font-size:0.7rem;">Forçar Atualização do PEC em Background</label>
                             </div>
                             <button class="btn btn-light border btn-sm text-primary w-100" onclick="enviarComandoUpdate('${hwid}', '${nomeExibicao}')">
                                 <i class="bi bi-cloud-arrow-down-fill"></i> Atualizar para v${versaoMeta}
