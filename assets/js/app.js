@@ -1,6 +1,7 @@
 let isUserAdmin = false;
 let dadosGlobais = {}; 
 let dadosSistema = {}; 
+let idsPendentes = [];
 let filtroAtual = 'todos';
 let termoPesquisa = '';
 let historicoLogs = {};  
@@ -443,6 +444,7 @@ function renderizarCards() {
 
     // --- 1. FILTRAGEM ---
     const listaFiltrada = listaClientes.filter(cliente => {
+        if (idsPendentes.includes(cliente.hwid)) return false;
         // CORREÇÃO NOME: Inclui nome da máquina na busca
         let nome = (cliente.municipio || cliente.nome_municipio || cliente.maquina || "").toLowerCase();
         let id = cliente.hwid.toLowerCase();
@@ -734,29 +736,40 @@ function monitorarPendentes() {
         const badge = document.getElementById('badge-pendentes');
         const lista = document.getElementById('lista-pendentes');
         
+        // --- ATUALIZA A LISTA GLOBAL DE PENDENTES ---
+        idsPendentes = dados ? Object.keys(dados) : [];
+        renderizarCards(); // Força atualização do painel para esconder os intrusos
+        // --------------------------------------------
+
         if (!dados) {
-            badge.style.display = 'none';
-            lista.innerHTML = '<div class="p-4 text-center text-muted">Nenhuma solicitação pendente.</div>';
+            if(badge) badge.style.display = 'none';
+            if(lista) lista.innerHTML = '<div class="p-4 text-center text-muted">Nenhuma solicitação pendente.</div>';
             return;
         }
+        
         const qtd = Object.keys(dados).length;
-        badge.innerText = qtd;
-        badge.style.display = 'block';
-        lista.innerHTML = '';
-        for (let hwid in dados) {
-            let item = dados[hwid];
-            let html = `
-                <div class="list-group-item d-flex justify-content-between align-items-center p-3">
-                    <div>
-                        <h6 class="mb-1 fw-bold text-primary">${item.nome_solicitado}</h6>
-                        <small class="text-muted d-block" style="font-size: 0.75rem"><i class="bi bi-cpu"></i> ID: ${hwid.substring(0, 15)}...</small>
-                    </div>
-                    <div class="btn-group">
-                        <button class="btn btn-sm btn-outline-danger" onclick="rejeitarAgente('${hwid}')">Recusar</button>
-                        <button class="btn btn-sm btn-success text-white" onclick="aprovarAgente('${hwid}', '${item.nome_solicitado}')">APROVAR</button>
-                    </div>
-                </div>`;
-            lista.innerHTML += html;
+        if(badge) {
+            badge.innerText = qtd;
+            badge.style.display = 'block';
+        }
+        
+        if(lista) {
+            lista.innerHTML = '';
+            for (let hwid in dados) {
+                let item = dados[hwid];
+                let html = `
+                    <div class="list-group-item d-flex justify-content-between align-items-center p-3">
+                        <div>
+                            <h6 class="mb-1 fw-bold text-primary">${item.nome_solicitado}</h6>
+                            <small class="text-muted d-block" style="font-size: 0.75rem"><i class="bi bi-cpu"></i> ID: ${hwid.substring(0, 15)}...</small>
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-outline-danger" onclick="rejeitarAgente('${hwid}')">Recusar</button>
+                            <button class="btn btn-sm btn-success text-white" onclick="aprovarAgente('${hwid}', '${item.nome_solicitado}')">APROVAR</button>
+                        </div>
+                    </div>`;
+                lista.innerHTML += html;
+            }
         }
     });
 }
