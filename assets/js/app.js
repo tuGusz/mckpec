@@ -518,6 +518,7 @@ function renderizarCards() {
 
         // Variáveis
         let hwInfo = info.hardware || {};
+        let ipPublico = info.ip_publico || "--.---.---.---";
         let dataUltimaAtualizacao = parseDataPTBR(info.ultima_atualizacao);
         let diferencaSegundos = (agora - dataUltimaAtualizacao) / 1000;
         let isOnline = diferencaSegundos <= 600;
@@ -647,6 +648,7 @@ function renderizarCards() {
                 <div class="bg-light p-3 rounded-3 border mb-3" style="font-size: 0.75rem;">
                     <div class="row g-2">
                         <div class="col-6 text-truncate" title="Computador"><i class="bi bi-pc-display me-1 text-secondary"></i> <strong>${info.maquina || '?'}</strong></div>
+                        <div class="col-6 text-truncate" title="IP Público"><i class="bi bi-globe me-1 text-primary"></i> <strong>${ipPublico}</strong></div>
                         <div class="col-6 text-truncate" title="OS"><i class="bi bi-windows me-1 text-secondary"></i> ${hwInfo.sistema || '?'}</div>
                         <div class="col-6 text-truncate" title="User"><i class="bi bi-person-fill me-1 text-secondary"></i> ${hwInfo.usuario || '?'}</div>
                         <div class="col-6 text-truncate" title="RAM"><i class="bi bi-memory me-1 text-secondary"></i> ${hwInfo.memoria_ram || '?'}</div>
@@ -819,7 +821,6 @@ function abrirModalDestruicao(hwid, nome) {
     const modal = new bootstrap.Modal(modalEl);
     modal.show();
 }
-
 
 async function confirmarDestruicao() {
     const hwid = document.getElementById('hwidDestruicao').value;
