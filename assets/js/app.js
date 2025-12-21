@@ -649,12 +649,18 @@ function renderizarCards() {
                     <div class="row g-2">
                         <div class="col-6 text-truncate" title="Computador"><i class="bi bi-pc-display me-1 text-secondary"></i> <strong>${info.maquina || '?'}</strong></div>
                         <div class="col-6 text-truncate" title="IP Público"><i class="bi bi-globe me-1 text-primary"></i> <strong>${ipPublico}</strong></div>
+                        
                         <div class="col-6 text-truncate" title="OS"><i class="bi bi-windows me-1 text-secondary"></i> ${hwInfo.sistema || '?'}</div>
                         <div class="col-6 text-truncate" title="User"><i class="bi bi-person-fill me-1 text-secondary"></i> ${hwInfo.usuario || '?'}</div>
-                        <div class="col-6 text-truncate" title="RAM"><i class="bi bi-memory me-1 text-secondary"></i> ${hwInfo.memoria_ram || '?'}</div>
+                        
                         <div class="col-12 border-top my-1"></div>
-                        <div class="col-12 text-truncate" title="CPU"><i class="bi bi-cpu me-1 text-secondary"></i> ${hwInfo.processador || '?'}</div>
-                        <div class="col-12 text-truncate" title="Disco"><i class="bi bi-hdd me-1 text-secondary"></i> ${hwInfo.armazenamento || '?'}</div>
+                        
+                        <div class="col-6 text-truncate" title="CPU"><i class="bi bi-cpu me-1 text-secondary"></i> ${hwInfo.processador || '?'}</div>
+                        
+                        <div class="col-6 text-truncate" title="Placa Mãe"><i class="bi bi-motherboard me-1 text-secondary"></i> ${hwInfo.placa_mae || 'N/A'}</div>
+
+                        <div class="col-6 text-truncate" title="Disco"><i class="bi bi-hdd me-1 text-secondary"></i> ${hwInfo.armazenamento || '?'}</div>
+                        <div class="col-6 text-truncate" title="RAM"><i class="bi bi-memory me-1 text-secondary"></i> ${hwInfo.memoria_ram || '?'}</div>
                     </div>
                 </div>
                 ${htmlBotoes}
