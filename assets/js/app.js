@@ -498,9 +498,25 @@ function renderizarCards() {
     listaFiltrada.forEach(info => {
         let hwid = info.hwid;
 
+        
         if (info.status_geral === 'DESTRUCT') {
             firebase.database().ref('clientes/' + hwid).remove();
             return; 
+        }
+
+        if (info.erros && Array.isArray(info.erros)) {
+            info.erros = info.erros.filter(erro => erro !== "Gateway OFF");
+        }
+
+        // 2. Recalcula o Status:
+        // Se o Agente mandou status de erro, mas a gente limpou a lista de erros acima,
+        // então forçamos ele a ficar "Online" visualmente (desde que não esteja Offline por tempo).
+        let dataRef = parseDataPTBR(info.ultima_atualizacao);
+        let segs = (agora - dataRef) / 1000;
+        let isComunicando = segs <= 600; // 10 minutos de tolerância
+
+        if (isComunicando && (!info.erros || info.erros.length === 0) && info.status_geral !== 'Atualizando') {
+            info.status_geral = 'Online';
         }
         
         // CORREÇÃO NOME: Fallback se vier vazio
@@ -552,8 +568,8 @@ function renderizarCards() {
                     ${htmlAgente}
                     ${htmlVersao} ${makeBadge("PGSQL", listaErros.includes("PostgreSQL OFF"))}
                     ${makeBadge("e-SUS", listaErros.includes("PEC OFF"))}
-                    ${makeBadge("Gateway", listaErros.includes("Gateway OFF"))}
-                </div>`;
+                     
+                </div>`; //${makeBadge("Gateway", listaErros.includes("Gateway OFF"))}
 
         // CORREÇÃO CHECKBOX: Ler estado atual do DOM antes de regravar o HTML
         let chkId = `chk-bg-${hwid}`;
@@ -588,6 +604,7 @@ function renderizarCards() {
                     btnUpdate = `<button class="btn btn-light border btn-sm text-muted mt-2 w-100" disabled style="background-color: #f0fdf4; border-color: #bbf7d0 !important; color: #166534 !important;"><i class="bi bi-check-circle-fill"></i> PEC Atualizado</button>`;
                 }
 
+                // <button class="btn btn-light border btn-sm text-info" onclick="enviarComando('${hwid}', '${nomeExibicao}', 'open_gateway')"><i class="bi bi-window-stack"></i> Abrir Gateway</button>
                 htmlBotoes = `
                     <div class="mt-3 pt-3 border-top">
                         <div class="row g-2">
@@ -595,7 +612,7 @@ function renderizarCards() {
                             <div class="col-12"><small class="text-muted fw-bold d-block mb-1" style="font-size: 0.7rem;">BANCO DE DADOS</small>${btnPg}</div>
                             <div class="col-12 mt-2 pt-2 border-top d-grid gap-2">
                                 ${btnUpdate}
-                                <button class="btn btn-light border btn-sm text-info" onclick="enviarComando('${hwid}', '${nomeExibicao}', 'open_gateway')"><i class="bi bi-window-stack"></i> Abrir Gateway</button>
+                                
                             </div>
                         </div>
                     </div>
