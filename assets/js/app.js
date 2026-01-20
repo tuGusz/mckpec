@@ -465,12 +465,21 @@ function renderizarCards() {
     });
 
     // --- 2. ORDENAÇÃO ---
-    listaFiltrada.sort((a, b) => {
-        if(a.status_geral !== 'Online' && b.status_geral === 'Online') return -1;
-        if(a.status_geral === 'Online' && b.status_geral !== 'Online') return 1;
-        return (a.municipio || "").localeCompare(b.municipio || "");
-    });
+    // listaFiltrada.sort((a, b) => {
+    //     if(a.status_geral !== 'Online' && b.status_geral === 'Online') return -1;
+    //     if(a.status_geral === 'Online' && b.status_geral !== 'Online') return 1;
+    //     return (a.municipio || "").localeCompare(b.municipio || "");
+    // });
 
+    listaFiltrada.sort((a, b) => {
+        // Pega o nome de exibição de cada um (com os mesmos fallbacks de segurança)
+        let nomeA = (a.municipio || a.nome_municipio || a.maquina || "").trim().toLowerCase();
+        let nomeB = (b.municipio || b.nome_municipio || b.maquina || "").trim().toLowerCase();
+        
+        // Compara apenas os nomes (A-Z)
+        return nomeA.localeCompare(nomeB);
+    });
+    
     // --- 3. LIMPEZA INTELIGENTE (CORREÇÃO DO PISCA-PISCA E SPINNER) ---
     const idsAtuais = listaFiltrada.map(c => c.hwid);
     const filhos = Array.from(container.children);
@@ -498,7 +507,6 @@ function renderizarCards() {
     listaFiltrada.forEach(info => {
         let hwid = info.hwid;
 
-        
         if (info.status_geral === 'DESTRUCT') {
             firebase.database().ref('clientes/' + hwid).remove();
             return; 
@@ -507,7 +515,6 @@ function renderizarCards() {
         if (info.erros && Array.isArray(info.erros)) {
             info.erros = info.erros.filter(erro => erro !== "Gateway OFF");
         }
-
         // 2. Recalcula o Status:
         // Se o Agente mandou status de erro, mas a gente limpou a lista de erros acima,
         // então forçamos ele a ficar "Online" visualmente (desde que não esteja Offline por tempo).
@@ -539,6 +546,32 @@ function renderizarCards() {
         let diferencaSegundos = (agora - dataUltimaAtualizacao) / 1000;
         let isOnline = diferencaSegundos <= 600;
         let isUpdating = (info.comando === 'update_pec' || info.comando === 'update_pec_background' || info.status_geral === 'Atualizando');
+
+        let discoTotal = parseFloat(hwInfo.disco_total_gb) || 0;
+        let discoLivre = parseFloat(hwInfo.disco_livre_gb) || 0;
+        let discoUsado = discoTotal - discoLivre;
+        let pctUso = discoTotal > 0 ? (discoUsado / discoTotal) * 100 : 0;
+        let espacoCritico = discoLivre < 11;
+
+        let diskBarClass = "";
+        if (pctUso > 90 || espacoCritico) diskBarClass = "danger"; // Vermelho se cheio ou crítico
+        else if (pctUso > 75) diskBarClass = "warning"; // Amarelo
+        else diskBarClass = "";
+
+        let htmlDisco = `
+            <div class="col-12 mt-2">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <small class="text-muted" title="Disco Local"><i class="bi bi-hdd-fill me-1"></i> ${hwInfo.disco_label || 'C:'}</small>
+                    <small class="${espacoCritico ? 'text-danger fw-bold' : 'text-muted'}">
+                        ${discoLivre.toFixed(1)} GB livres de ${discoTotal.toFixed(1)} GB
+                    </small>
+                </div>
+                <div class="disk-usage-container" title="${pctUso.toFixed(1)}% Usado">
+                    <div class="disk-usage-bar ${diskBarClass}" style="width: ${pctUso}%"></div>
+                </div>
+                ${espacoCritico ? '<div class="text-danger mt-1" style="font-size: 0.65rem;"><i class="bi bi-exclamation-circle-fill"></i> Espaço insuficiente para atualização (< 11GB)</div>' : ''}
+            </div>
+        `;
 
         let statusBadge = isOnline 
             ? `<span class="badge bg-success bg-opacity-10 text-success border border-success"><i class="bi bi-wifi"></i> Online</span>`
@@ -577,6 +610,8 @@ function renderizarCards() {
         let isChecked = chkElement ? chkElement.checked : false; // Salva estado
         let checkedStr = isChecked ? "checked" : ""; // Reaplica
 
+
+
         let htmlBotoes = '';
         if (isOnline) {
             if (isUserAdmin) {
@@ -589,20 +624,31 @@ function renderizarCards() {
                     : `<div class="btn-group w-100 mb-1"><button class="btn btn-outline-danger btn-sm btn-acao w-50 rounded-end-0" onclick="enviarComando('${hwid}', '${nomeExibicao}', 'stop_pg')"><i class="bi bi-stop-fill"></i> PARAR</button><button class="btn btn-outline-warning btn-sm btn-acao w-50 rounded-start-0" onclick="enviarComando('${hwid}', '${nomeExibicao}', 'restart_pg')"><i class="bi bi-arrow-clockwise"></i> REINICIAR</button></div>`;
 
                 let btnUpdate = '';
-                if (isDesatualizado) {
-                    btnUpdate = `
-                        <div>
-                            <div class="form-check form-switch d-flex justify-content-center mb-2">
-                                <input class="form-check-input me-2" type="checkbox" id="${chkId}" ${checkedStr}>
-                                <label class="form-check-label text-muted small" for="${chkId}" style="font-size:0.7rem;">Forçar Atualização do PEC em Background</label>
-                            </div>
-                            <button class="btn btn-light border btn-sm text-primary w-100" onclick="enviarComandoUpdate('${hwid}', '${nomeExibicao}')">
-                                <i class="bi bi-cloud-arrow-down-fill"></i> Atualizar para v${versaoMeta}
-                            </button>
-                        </div>`;
-                } else {
-                    btnUpdate = `<button class="btn btn-light border btn-sm text-muted mt-2 w-100" disabled style="background-color: #f0fdf4; border-color: #bbf7d0 !important; color: #166534 !important;"><i class="bi bi-check-circle-fill"></i> PEC Atualizado</button>`;
-                }
+        if (isDesatualizado) {
+            if (espacoCritico) {
+                // BLOQUEIA O BOTÃO SE NÃO TIVER ESPAÇO
+                btnUpdate = `
+                    <div class="mt-2">
+                         <button class="btn btn-light border btn-sm text-danger w-100" disabled style="opacity: 1; cursor: not-allowed; border-color: #fca5a5 !important; background-color: #fef2f2;">
+                             <i class="bi bi-x-circle-fill"></i> Update Bloqueado (Disco Cheio)
+                         </button>
+                    </div>`;
+            } else {
+                // MOSTRA O BOTÃO NORMALMENTE
+                btnUpdate = `
+                    <div class="border-top pt-2 mt-2">
+                         <div class="form-check form-switch d-flex justify-content-center mb-2">
+                             <input class="form-check-input me-2" type="checkbox" id="${chkId}" ${checkedStr}>
+                             <label class="form-check-label text-muted small" for="${chkId}" style="font-size:0.7rem;">Forçar Atualização do PEC em Background</label>
+                         </div>
+                         <button class="btn btn-light border btn-sm text-primary w-100" onclick="enviarComandoUpdate('${hwid}', '${nomeExibicao}')">
+                             <i class="bi bi-cloud-arrow-down-fill"></i> Atualizar para v${versaoMeta}
+                         </button>
+                    </div>`;
+            }
+        } else {
+            btnUpdate = `<button class="btn btn-light border btn-sm text-muted mt-2 w-100" disabled style="background-color: #f0fdf4; border-color: #bbf7d0 !important; color: #166534 !important;"><i class="bi bi-check-circle-fill"></i> PEC Atualizado</button>`;
+        }
 
                 // <button class="btn btn-light border btn-sm text-info" onclick="enviarComando('${hwid}', '${nomeExibicao}', 'open_gateway')"><i class="bi bi-window-stack"></i> Abrir Gateway</button>
                 htmlBotoes = `
@@ -646,6 +692,7 @@ function renderizarCards() {
         // --- MONTAGEM HTML (SEU LAYOUT ORIGINAL) ---
         let htmlContent = `
             ${overlayHtml} <div class="card-body">
+           
                 <div class="d-flex justify-content-between align-items-start mb-2">
                     <div>
                         <h5 class="card-title fw-bold mb-0 text-dark text-truncate" style="max-width: 220px;" title="${nomeExibicao}">
@@ -678,6 +725,13 @@ function renderizarCards() {
 
                         <div class="col-6 text-truncate" title="Disco"><i class="bi bi-hdd me-1 text-secondary"></i> ${hwInfo.armazenamento || '?'}</div>
                         <div class="col-6 text-truncate" title="RAM"><i class="bi bi-memory me-1 text-secondary"></i> ${hwInfo.memoria_ram || '?'}</div>
+
+                        <div class="bg-light p-3 rounded-3 border mb-3" style="font-size: 0.75rem;">
+                            <div class="row g-2">
+                                 ${htmlDisco} 
+                    
+                             </div>
+                        </div>
                     </div>
                 </div>
                 ${htmlBotoes}

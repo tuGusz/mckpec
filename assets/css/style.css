@@ -367,3 +367,37 @@ footer {
 .eye::after {
   transform: translate(var(--px, 0), var(--py, 0));
 }
+
+/* style.css */
+
+.disk-usage-container {
+    width: 100%;
+    background-color: #e2e8f0;
+    border-radius: 4px;
+    height: 8px; /* Altura da barra */
+    overflow: hidden;
+    margin-top: 4px;
+}
+
+.disk-usage-bar {
+    height: 100%;
+    background-color: #3b82f6; /* Azul padrão */
+    width: 0%;
+    transition: width 0.5s ease;
+}
+
+.disk-usage-bar.warning {
+    background-color: #f59e0b; /* Amarelo */
+}
+
+.disk-usage-bar.danger {
+    background-color: #ef4444; /* Vermelho */
+}
+
+.disk-text {
+    font-size: 0.65rem;
+    color: #64748b;
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2px;
+}
