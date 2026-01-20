@@ -479,7 +479,7 @@ function renderizarCards() {
         // Compara apenas os nomes (A-Z)
         return nomeA.localeCompare(nomeB);
     });
-    
+
     // --- 3. LIMPEZA INTELIGENTE (CORREÇÃO DO PISCA-PISCA E SPINNER) ---
     const idsAtuais = listaFiltrada.map(c => c.hwid);
     const filhos = Array.from(container.children);
@@ -551,7 +551,7 @@ function renderizarCards() {
         let discoLivre = parseFloat(hwInfo.disco_livre_gb) || 0;
         let discoUsado = discoTotal - discoLivre;
         let pctUso = discoTotal > 0 ? (discoUsado / discoTotal) * 100 : 0;
-        let espacoCritico = discoLivre < 11;
+        let espacoCritico = discoLivre < 15;
 
         let diskBarClass = "";
         if (pctUso > 90 || espacoCritico) diskBarClass = "danger"; // Vermelho se cheio ou crítico
