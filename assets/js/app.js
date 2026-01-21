@@ -2,7 +2,7 @@ let isUserAdmin = false;
 let dadosGlobais = {}; 
 let dadosSistema = {}; 
 let idsPendentes = [];
-let filtroAtual = 'todos';
+let filtrosAtivos = [];
 let termoPesquisa = '';
 let historicoLogs = {};  
 
@@ -139,14 +139,43 @@ function entrarModoLeitura() {
 
     iniciarCicloAtualizacao();
 }
-window.setFiltro = function(tipo, btnElement) {
-    filtroAtual = tipo;
-    const container = document.getElementById('filtros-container');
-    const botoes = container.getElementsByTagName('button');
-    for(let btn of botoes) btn.classList.remove('active');
-    btnElement.classList.add('active');
+
+function atualizarBadgeFiltros() {
+    const badge = document.getElementById('badge-filtros');
+    if (filtrosAtivos.length > 0) {
+        badge.innerText = filtrosAtivos.length;
+        badge.classList.remove('d-none');
+        document.getElementById('btnFiltros').classList.add('btn-secondary');
+        document.getElementById('btnFiltros').classList.remove('btn-outline-secondary');
+    } else {
+        badge.classList.add('d-none');
+        document.getElementById('btnFiltros').classList.remove('btn-secondary');
+        document.getElementById('btnFiltros').classList.add('btn-outline-secondary');
+    }
+}
+
+window.toggleFiltro = function(checkbox) {
+    const valor = checkbox.value;
+    
+    if (checkbox.checked) {
+        if (!filtrosAtivos.includes(valor)) filtrosAtivos.push(valor);
+    } else {
+        filtrosAtivos = filtrosAtivos.filter(item => item !== valor);
+    }
+
+    atualizarBadgeFiltros();
     renderizarCards();
 }
+
+window.limparFiltros = function() {
+    filtrosAtivos = [];
+    const checkboxes = document.querySelectorAll('#filtros-container input[type="checkbox"]');
+    checkboxes.forEach(chk => chk.checked = false);
+    
+    atualizarBadgeFiltros();
+    renderizarCards();
+}
+ 
 
 window.aplicarFiltros = function() {
     termoPesquisa = document.getElementById('inputPesquisa').value.toLowerCase();
@@ -224,27 +253,46 @@ function renderizarCards() {
     }
 
     // --- 1. FILTRAGEM ---
-    const listaFiltrada = listaClientes.filter(cliente => {
+const listaFiltrada = listaClientes.filter(cliente => {
+        // 1. Filtro de Pendentes (Sempre ativo)
         if (idsPendentes.includes(cliente.hwid)) return false;
-        // CORREÇÃO NOME: Inclui nome da máquina na busca
+
+        // 2. Filtro de Pesquisa (Texto)
         let nome = (cliente.municipio || cliente.nome_municipio || cliente.maquina || "").toLowerCase();
         let id = cliente.hwid.toLowerCase();
         const matchTexto = nome.includes(termoPesquisa) || id.includes(termoPesquisa);
         if(!matchTexto) return false;
 
+        // 3. Preparação de Dados para Filtros Lógicos
         let dataUltima = parseDataPTBR(cliente.ultima_atualizacao);
         let difSegundos = (agora - dataUltima) / 1000;
-        let isOnline = difSegundos <= 600; // Aumentei tolerância para 10 min (padrão)
+        let isOnline = difSegundos <= 600; // 10 min
         let listaErros = cliente.erros || [];
         
-        if (filtroAtual === 'todos') return true;
-        if (filtroAtual === 'online') return isOnline && cliente.status_geral === 'Online';
-        if (filtroAtual === 'erro') return isOnline && cliente.status_geral !== 'Online';
-        if (filtroAtual === 'offline') return !isOnline;
-        if (filtroAtual === 'pec_off') return isOnline && listaErros.includes("PEC OFF");
-        return true;
-    });
+        // Cálculo de Versão (Trazido para cá para usar no filtro)
+        let versaoPec = cliente.versao_pec || "N/A";
+        let isDesatualizado = compararVersoes(versaoPec, versaoMeta) < 0;
 
+        // 4. Lógica de Múltiplos Filtros (Lógica OR - OU)
+        // Se nenhum filtro estiver marcado, mostra TODOS (padrão)
+        if (filtrosAtivos.length === 0) return true;
+
+        let atendeAlgumFiltro = false;
+
+        if (filtrosAtivos.includes('online') && isOnline) atendeAlgumFiltro = true;
+        if (filtrosAtivos.includes('offline') && !isOnline) atendeAlgumFiltro = true;
+        
+        // Status de Erro (Considera Online mas com status 'Erro')
+        if (filtrosAtivos.includes('erro') && isOnline && cliente.status_geral !== 'Online') atendeAlgumFiltro = true;
+        
+        // Erro Específico: e-SUS
+        if (filtrosAtivos.includes('pec_off') && isOnline && listaErros.includes("PEC OFF")) atendeAlgumFiltro = true;
+
+        // NOVO: PEC Desatualizado
+        if (filtrosAtivos.includes('desatualizado') && isDesatualizado) atendeAlgumFiltro = true;
+
+        return atendeAlgumFiltro;
+    });
     // --- 2. ORDENAÇÃO ---
     // listaFiltrada.sort((a, b) => {
     //     if(a.status_geral !== 'Online' && b.status_geral === 'Online') return -1;
@@ -325,7 +373,7 @@ function renderizarCards() {
         }
 
         if (!info.log_acao) historicoLogs[hwid] = "";
-        
+
         // Variáveis
         let hwInfo = info.hardware || {};
         let ipPublico = info.ip_publico || "--.---.---.---";

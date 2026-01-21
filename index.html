@@ -131,28 +131,60 @@
                 </div>
 
                 <div class="col-lg-7 col-md-12">
-                    <div class="d-flex flex-wrap justify-content-lg-end gap-2" id="filtros-container">
-                        <span class="align-self-center text-muted small me-2 d-none d-lg-block">Filtrar por:</span>
+                    <div class="d-flex justify-content-lg-end" id="filtros-container">
                         
-                        <button class="btn btn-filter active" data-type="todos" onclick="setFiltro('todos', this)">
-                            Todos
-                        </button>
-                        
-                        <button class="btn btn-filter" data-type="online" onclick="setFiltro('online', this)">
-                            <i class="bi bi-wifi"></i> Online
-                        </button>
-                        
-                        <button class="btn btn-filter" data-type="erro" onclick="setFiltro('erro', this)">
-                            <i class="bi bi-exclamation-triangle"></i> Com Erro
-                        </button>
-                        
-                        <button class="btn btn-filter" data-type="pec_off" onclick="setFiltro('pec_off', this)">
-                            <i class="bi bi-hdd-network"></i> e-SUS Parado
-                        </button>
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary dropdown-toggle w-100" type="button" id="btnFiltros" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+                                <i class="bi bi-funnel-fill"></i> Filtrar Exibição <span id="badge-filtros" class="badge bg-primary ms-1 d-none">0</span>
+                            </button>
+                            <ul class="dropdown-menu shadow p-2" aria-labelledby="btnFiltros" style="min-width: 260px;">
+                                <li><h6 class="dropdown-header">Status de Conexão</h6></li>
+                                
+                                <li>
+                                    <label class="dropdown-item d-flex align-items-center gap-2" style="cursor: pointer;">
+                                        <input class="form-check-input mt-0" type="checkbox" value="online" onchange="toggleFiltro(this)">
+                                        <span><i class="bi bi-wifi text-success"></i> Online</span>
+                                    </label>
+                                </li>
+                                <li>
+                                    <label class="dropdown-item d-flex align-items-center gap-2" style="cursor: pointer;">
+                                        <input class="form-check-input mt-0" type="checkbox" value="offline" onchange="toggleFiltro(this)">
+                                        <span><i class="bi bi-wifi-off text-secondary"></i> Offline</span>
+                                    </label>
+                                </li>
 
-                        <button class="btn btn-filter" data-type="offline" onclick="setFiltro('offline', this)">
-                            <i class="bi bi-wifi-off"></i> Offline
-                        </button>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><h6 class="dropdown-header">Problemas & Alertas</h6></li>
+
+                                <li>
+                                    <label class="dropdown-item d-flex align-items-center gap-2" style="cursor: pointer;">
+                                        <input class="form-check-input mt-0" type="checkbox" value="erro" onchange="toggleFiltro(this)">
+                                        <span><i class="bi bi-exclamation-triangle text-danger"></i> Com Erro</span>
+                                    </label>
+                                </li>
+                                <li>
+                                    <label class="dropdown-item d-flex align-items-center gap-2" style="cursor: pointer;">
+                                        <input class="form-check-input mt-0" type="checkbox" value="pec_off" onchange="toggleFiltro(this)">
+                                        <span><i class="bi bi-hdd-network text-danger"></i> e-SUS Parado</span>
+                                    </label>
+                                </li>
+                                
+                                <li>
+                                    <label class="dropdown-item d-flex align-items-center gap-2" style="cursor: pointer;">
+                                        <input class="form-check-input mt-0" type="checkbox" value="desatualizado" onchange="toggleFiltro(this)">
+                                        <span><i class="bi bi-cloud-arrow-down-fill text-warning"></i> PEC Desatualizado</span>
+                                    </label>
+                                </li>
+                                
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <button class="btn btn-sm btn-light w-100 text-muted" onclick="limparFiltros()">
+                                        Limpar Filtros
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+
                     </div>
                 </div>
             </div>
