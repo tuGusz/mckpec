@@ -1,15 +1,14 @@
 const firebaseConfig = {
-    apiKey: "AIzaSyBvYpxSx7hVBfYdAda3UM5TnDE-Uqcbl8Q",
-    authDomain: "monitorpec-72985.firebaseapp.com",
-    databaseURL: "https://monitorpec-72985-default-rtdb.firebaseio.com",
-    projectId: "monitorpec-72985",
-    storageBucket: "monitorpec-72985.firebasestorage.app",
-    messagingSenderId: "173305825794",
-    appId: "1:173305825794:web:bd9b1a38f3c65298dab51b",
-    measurementId: "G-2XFRT3B3P3"
+  apiKey: "AIzaSyBHOP25lBchxT0LXKF08dImg54KI-MAVZM",
+  authDomain: "mpec-6fdf1.firebaseapp.com",
+  databaseURL: "https://mpec-6fdf1-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "mpec-6fdf1",
+  storageBucket: "mpec-6fdf1.firebasestorage.app",
+  messagingSenderId: "114353763631",
+  appId: "1:114353763631:web:0e0044ff28bb1601e3ddda",
+  measurementId: "G-SWKQSS6VXJ"
 };
 
- 
 try {
     firebase.initializeApp(firebaseConfig);
     console.log("Firebase inicializado com sucesso.");

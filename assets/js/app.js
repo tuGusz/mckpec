@@ -6,10 +6,7 @@ let filtroAtual = 'todos';
 let termoPesquisa = '';
 let historicoLogs = {};  
 
-const URL_BANCO_LEITURA = "https://monitorpec-72985-default-rtdb.firebaseio.com/clientes.json";
-const URL_SISTEMA_LEITURA = "https://monitorpec-72985-default-rtdb.firebaseio.com/sistema.json";
-const URL_PENDENTES = "https://monitorpec-72985-default-rtdb.firebaseio.com/pendentes.json";
-
+ 
 // --- INICIALIZAÇÃO SEGURA (SESSÃO PERSISTENTE) ---
 firebase.auth().onAuthStateChanged((user) => {
     const btnLogout = document.getElementById('btn-logout');
@@ -157,8 +154,25 @@ window.aplicarFiltros = function() {
 }
  
 function iniciarCicloAtualizacao() {
-    buscarDados();
-    setInterval(buscarDados, 5000);  
+    firebase.database().ref('clientes').on('value', (snapshot) => {
+        const dados = snapshot.val();
+        dadosGlobais = dados || {};
+        
+        // Atualiza o relógio apenas visualmente
+        document.getElementById('relogio').innerText = new Date().toLocaleTimeString('pt-BR');
+        
+        // Renderiza a tela apenas quando o dado muda no servidor
+        renderizarCards(); 
+    }, (error) => {
+        console.error("Erro no Listener Clientes:", error);
+    });
+
+    // Escuta mudanças no sistema (versão)
+    firebase.database().ref('sistema').on('value', (snapshot) => {
+        const dados = snapshot.val();
+        dadosSistema = dados || {};
+        renderizarCards(); // Re-renderiza para atualizar avisos de versão
+    });
 }
 
 async function buscarDados() {
