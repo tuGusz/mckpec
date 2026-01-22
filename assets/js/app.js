@@ -241,6 +241,8 @@ function compararVersoes(v1, v2) {
 }
 
 function renderizarCards() {
+    atualizarContadoresFiltros();
+    
     const container = document.getElementById('painel-clientes');
     const agora = new Date();
     const versaoMeta = dadosSistema.pec_versao_recente || "0.0.0";
@@ -253,7 +255,7 @@ function renderizarCards() {
     }
 
     // --- 1. FILTRAGEM ---
-const listaFiltrada = listaClientes.filter(cliente => {
+    const listaFiltrada = listaClientes.filter(cliente => {
         // 1. Filtro de Pendentes (Sempre ativo)
         if (idsPendentes.includes(cliente.hwid)) return false;
 
@@ -293,13 +295,7 @@ const listaFiltrada = listaClientes.filter(cliente => {
 
         return atendeAlgumFiltro;
     });
-    // --- 2. ORDENAÇÃO ---
-    // listaFiltrada.sort((a, b) => {
-    //     if(a.status_geral !== 'Online' && b.status_geral === 'Online') return -1;
-    //     if(a.status_geral === 'Online' && b.status_geral !== 'Online') return 1;
-    //     return (a.municipio || "").localeCompare(b.municipio || "");
-    // });
-
+ 
     listaFiltrada.sort((a, b) => {
         // Pega o nome de exibição de cada um (com os mesmos fallbacks de segurança)
         let nomeA = (a.municipio || a.nome_municipio || a.maquina || "").trim().toLowerCase();
@@ -732,6 +728,68 @@ function abrirModalDestruicao(hwid, nome) {
     const modalEl = document.getElementById('modalDestruicao');
     const modal = new bootstrap.Modal(modalEl);
     modal.show();
+}
+
+function atualizarContadoresFiltros() {
+    // Inicializa contadores
+    let counts = {
+        online: 0,
+        offline: 0,
+        erro: 0,
+        pec_off: 0,
+        desatualizado: 0
+    };
+
+    const agora = new Date();
+    const versaoMeta = dadosSistema.pec_versao_recente || "0.0.0";
+
+    // Itera sobre TODOS os dados (não apenas os filtrados na tela)
+    for (let hwid in dadosGlobais) {
+        let cliente = dadosGlobais[hwid];
+
+        // Se for pendente ou destruído, ignora na contagem
+        if (idsPendentes.includes(hwid) || cliente.status_geral === 'DESTRUCT') continue;
+
+        // Lógica de Status (Mesma usada no renderizarCards)
+        let dataUltima = parseDataPTBR(cliente.ultima_atualizacao);
+        let difSegundos = (agora - dataUltima) / 1000;
+        let isOnline = difSegundos <= 600; // 10 min
+        
+        let versaoPec = cliente.versao_pec || "N/A";
+        let isDesatualizado = compararVersoes(versaoPec, versaoMeta) < 0;
+        let listaErros = cliente.erros || [];
+
+        // Incrementa contadores
+        if (isOnline) {
+            counts.online++;
+            
+            // Se está online, checa erros
+            if (cliente.status_geral !== 'Online' && cliente.status_geral !== 'Atualizando') {
+                counts.erro++;
+            }
+            if (listaErros.includes("PEC OFF")) {
+                counts.pec_off++;
+            }
+        } else {
+            counts.offline++;
+        }
+
+        if (isDesatualizado) {
+            counts.desatualizado++;
+        }
+    }
+
+    // Atualiza o HTML (DOM)
+    const setTxt = (id, val) => {
+        const el = document.getElementById(id);
+        if(el) el.innerText = val;
+    };
+
+    setTxt('qtd-online', counts.online);
+    setTxt('qtd-offline', counts.offline);
+    setTxt('qtd-erro', counts.erro);
+    setTxt('qtd-pec-off', counts.pec_off);
+    setTxt('qtd-desatualizado', counts.desatualizado);
 }
 
 async function confirmarDestruicao() {

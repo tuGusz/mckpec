@@ -144,12 +144,15 @@
                                     <label class="dropdown-item d-flex align-items-center gap-2" style="cursor: pointer;">
                                         <input class="form-check-input mt-0" type="checkbox" value="online" onchange="toggleFiltro(this)">
                                         <span><i class="bi bi-wifi text-success"></i> Online</span>
+                                        <span id="qtd-online" class="badge bg-success bg-opacity-25 text-success ms-auto rounded-pill">0</span>
                                     </label>
                                 </li>
+
                                 <li>
                                     <label class="dropdown-item d-flex align-items-center gap-2" style="cursor: pointer;">
                                         <input class="form-check-input mt-0" type="checkbox" value="offline" onchange="toggleFiltro(this)">
                                         <span><i class="bi bi-wifi-off text-secondary"></i> Offline</span>
+                                        <span id="qtd-offline" class="badge bg-secondary bg-opacity-25 text-secondary ms-auto rounded-pill">0</span>
                                     </label>
                                 </li>
 
@@ -160,19 +163,23 @@
                                     <label class="dropdown-item d-flex align-items-center gap-2" style="cursor: pointer;">
                                         <input class="form-check-input mt-0" type="checkbox" value="erro" onchange="toggleFiltro(this)">
                                         <span><i class="bi bi-exclamation-triangle text-danger"></i> Com Erro</span>
+                                        <span id="qtd-erro" class="badge bg-danger bg-opacity-25 text-danger ms-auto rounded-pill">0</span>
                                     </label>
                                 </li>
+
                                 <li>
                                     <label class="dropdown-item d-flex align-items-center gap-2" style="cursor: pointer;">
                                         <input class="form-check-input mt-0" type="checkbox" value="pec_off" onchange="toggleFiltro(this)">
                                         <span><i class="bi bi-hdd-network text-danger"></i> e-SUS Parado</span>
+                                        <span id="qtd-pec-off" class="badge bg-danger bg-opacity-25 text-danger ms-auto rounded-pill">0</span>
                                     </label>
                                 </li>
-                                
+
                                 <li>
                                     <label class="dropdown-item d-flex align-items-center gap-2" style="cursor: pointer;">
                                         <input class="form-check-input mt-0" type="checkbox" value="desatualizado" onchange="toggleFiltro(this)">
                                         <span><i class="bi bi-cloud-arrow-down-fill text-warning"></i> PEC Desatualizado</span>
+                                        <span id="qtd-desatualizado" class="badge bg-warning bg-opacity-25 text-dark ms-auto rounded-pill">0</span>
                                     </label>
                                 </li>
                                 
