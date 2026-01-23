@@ -1019,25 +1019,51 @@ function abrirVisualizadorLogs(hwid) {
 //     });
 // }
 
+let cacheLogAtual = ""; // Variável global para guardar o CSV e usar no download
+
 function renderizarTabelaLogs(csvRaw) {
     const viewer = document.getElementById('log-viewer-content');
+    cacheLogAtual = csvRaw; // Salva para o botão de download usar depois
+
     if(!csvRaw) {
         viewer.innerHTML = '<div class="p-4 text-center text-muted">Log vazio ou inexistente.</div>';
         return;
     }
 
-    // O C++ manda linhas separadas por \n e colunas por ;
-    const linhas = csvRaw.split('\n').reverse(); // Inverte para ver o mais recente primeiro
+    // 1. Separa as linhas
+    let linhas = csvRaw.split('\n');
+    
+    // 2. Remove linhas vazias
+    linhas = linhas.filter(l => l.trim().length > 5);
+
+    // 3. Identifica e remove o cabeçalho original (se existir)
+    // O cabeçalho geralmente começa com "DATA" ou "DATA_HORA"
+    const indexHeader = linhas.findIndex(l => l.toUpperCase().includes("DATA_HORA") || l.toUpperCase().includes("DATA;"));
+    if (indexHeader > -1) {
+        linhas.splice(indexHeader, 1); // Remove do array para não ser invertido
+    }
+
+    // 4. Inverte APENAS os dados (Novos primeiro)
+    linhas.reverse(); 
     
     let html = '';
+
+    // 5. Adiciona o Cabeçalho FIXO no topo manualmente
+    html += `
+        <div class="log-row header-row">
+            <div class="l-time">DATA / HORA</div>
+            <div class="l-type text-center">TIPO</div>
+            <div class="l-msg">MENSAGEM DO SISTEMA</div>
+        </div>`;
+
+    // 6. Gera as linhas de dados
     linhas.forEach(linha => {
-        if(linha.trim().length < 5) return; // Pula linhas vazias
-        
         const cols = linha.split(';');
         if(cols.length >= 3) {
             const data = cols[0];
             const tipo = cols[1];
-            const msg = cols.slice(2).join(';'); // Junta o resto caso tenha ; na mensagem
+            // Reconstrói a mensagem caso ela tenha ; no meio
+            const msg = cols.slice(2).join(';'); 
 
             html += `
                 <div class="log-row">
@@ -1049,6 +1075,30 @@ function renderizarTabelaLogs(csvRaw) {
     });
 
     viewer.innerHTML = html;
+}
+
+// --- NOVA FUNÇÃO DE DOWNLOAD ---
+function baixarLogsAtuais() {
+    if (!cacheLogAtual) {
+        alert("Nenhum log carregado para baixar.");
+        return;
+    }
+
+    // Cria um elemento Blob (arquivo virtual)
+    const blob = new Blob([cacheLogAtual], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    
+    // Cria um link invisível e clica nele
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    
+    // Nome do arquivo com data/hora para organização
+    const dataHoje = new Date().toISOString().slice(0,10);
+    link.setAttribute("download", `auditoria_mck_${dataHoje}.csv`);
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 }
 
 function fecharVisualizadorLogs() {

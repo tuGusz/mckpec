@@ -338,9 +338,19 @@
         <div class="log-stage">
             <div class="log-panel shadow-lg">
                 <div class="log-header">
-                    <h5 class="mb-0 fw-bold text-white"><i class="bi bi-file-earmark-text"></i> Auditoria do Agente</h5>
-                    <button class="btn btn-sm btn-icon-glass text-white" onclick="fecharVisualizadorLogs()"><i class="bi bi-x-lg"></i></button>
+                    <div class="d-flex align-items-center gap-3">
+                        <h5 class="mb-0 fw-bold text-white"><i class="bi bi-file-earmark-text"></i>  Auditoria do Agente</h5>
+                        
+                        <button class="btn btn-sm btn-outline-success border-0" onclick="baixarLogsAtuais()" title="Baixar CSV">
+                            <i class="bi bi-download"></i> Baixar
+                        </button>
+                    </div>
+                    
+                    <button class="btn btn-sm btn-icon-glass text-white" onclick="fecharVisualizadorLogs()">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
                 </div>
+
                 <div class="log-content custom-scrollbar" id="log-viewer-content">
                     <div class="text-center mt-5 text-white-50">
                         <div class="spinner-border text-primary mb-3"></div>
