@@ -23,7 +23,7 @@ firebase.auth().onAuthStateChanged((user) => {
 
         const userDisplay = document.getElementById('user-display');
         if(userDisplay) {
-            userDisplay.innerText = user.email;
+            userDisplay.innerText = user.email.split('@')[0]; 
             userDisplay.className = "fw-bold text-info";
         }
 
