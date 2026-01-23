@@ -66,7 +66,65 @@
         </div>
     </div>
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark-blue shadow-sm sticky-top">
+    <nav class="navbar navbar-expand-lg fixed-top navbar-glass">
+    <div class="container-fluid px-4">
+        
+        <a class="navbar-brand d-flex align-items-center gap-2" href="#">
+            <div class="brand-icon-box">
+                <img src="assets/img/perfil_site.png" alt="MCK" height="24">
+            </div>
+            <div class="d-flex flex-column">
+                <span class="fw-bold text-white tracking-wide">MCK Monitoramento</span>
+                <span class="text-white-50" style="font-size: 0.65rem; margin-top: -3px;">Gestão de Infraestrutura e-SUS</span>
+            </div>
+        </a>
+
+        <div class="d-flex align-items-center ms-auto gap-3">
+
+            <div class="header-item-box d-none d-md-flex align-items-center">
+                <div class="status-dot"></div>
+                <div class="d-flex flex-column text-end ms-2">
+                    <span class="label-mini">SISTEMA ONLINE</span>
+                    <span id="relogio" class="font-monospace fw-bold text-white">--:--:--</span>
+                </div>
+            </div>
+
+            <button class="btn btn-glass-primary position-relative" onclick="abrirModalAprovacao()" title="Gerenciar Aprovações">
+                <i class="bi bi-shield-check"></i>
+                <span class="d-none d-lg-inline ms-2">Solicitações</span>
+                <span id="badge-pendentes" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger shadow-sm border border-dark" style="display: none;">
+                    0
+                </span>
+            </button>
+
+            <div class="header-user-box d-flex align-items-center gap-2">
+                <div class="d-flex flex-column text-end d-none d-md-block">
+                    <span class="label-mini text-white-50">USUÁRIO</span>
+                    <span id="user-display" class="fw-semibold text-white small">Visitante</span>
+                </div>
+                <div class="avatar-circle">
+                    <i class="bi bi-person-fill"></i>
+                </div>
+            </div>
+
+            <div class="d-flex align-items-center gap-2 border-start border-white border-opacity-10 ps-3">
+                <button class="btn btn-icon-glass" onclick="toggleConsoleLogs()" title="Ver Logs">
+                    <i class="bi bi-terminal"></i>
+                </button>
+
+                <button id="btn-logout" class="btn btn-icon-glass text-danger-hover d-none" onclick="fazerLogout()" title="Sair">
+                    <i class="bi bi-power"></i>
+                </button>
+
+                <button id="btn-login" class="btn btn-sm btn-light fw-bold px-3 rounded-pill" onclick="abrirModalLogin()">
+                    Entrar
+                </button>
+            </div>
+
+        </div>
+    </div>
+</nav>
+    <!-- <nav class="navbar navbar-expand-lg navbar-dark bg-dark-blue shadow-sm sticky-top">
         <div class="container-fluid px-4">
             
             <a class="navbar-brand fw-bold d-flex align-items-center" href="#">
@@ -110,7 +168,7 @@
 
             </div>
         </div>
-    </nav>
+    </nav> -->
 
     <div class="container-fluid px-4 mt-2 conteudo-principal">
         <!-- <div class="row mb-4 align-items-center">
@@ -120,7 +178,8 @@
             </div>
         </div> -->
 
-        <div class="control-bar">
+        <div id="sentinela-topo"></div>
+        <div class="control-bar" id="barra-controle">
             <div class="row align-items-center gy-3">
                 
                 <div class="col-lg-5 col-md-12">

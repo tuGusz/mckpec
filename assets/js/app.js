@@ -938,4 +938,28 @@ window.enviarComandoUpdate = function(hwid, nomeExibicao) {
         .catch(err => alert("Erro: " + err.message));
 }
 
+document.addEventListener("DOMContentLoaded", function() {
+    const barra = document.getElementById('barra-controle');
+    const sentinela = document.getElementById('sentinela-topo');
+
+    if (barra && sentinela) {
+        const observer = new IntersectionObserver((entries) => {
+            // Se o sentinela saiu da tela (rolou para baixo)
+            if (!entries[0].isIntersecting) {
+                barra.classList.add('gemini-sticky');
+            } else {
+                // Se o sentinela está na tela (topo da página)
+                barra.classList.remove('gemini-sticky');
+            }
+        }, {
+            threshold: 0,
+            // ALTERADO DE -80px PARA -50px
+            // Isso cria uma "zona segura" para o carregamento inicial não ativar o efeito
+            rootMargin: "-50px 0px 0px 0px" 
+        });
+
+        observer.observe(sentinela);
+    }
+});
+
 iniciarCicloAtualizacao();
