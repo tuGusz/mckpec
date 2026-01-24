@@ -6,18 +6,14 @@
     <title>MCK | Monitoramento de Servidores</title>
     
     <link rel="shortcut icon" href="assets/img/perfil_site.png" type="image/png">
-
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    
     <link rel="stylesheet" href="assets/css/style.css">
-
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <link rel="stylesheet" href="assets/css/modules/navbar.css">
+    <link rel="stylesheet" href="assets/css/modules/login.css">
+    <link rel="stylesheet" href="assets/css/modules/dashboard.css">
+    <link rel="stylesheet" href="assets/css/modules/logs.css">
 </head>
 <body>
 
@@ -67,118 +63,66 @@
     </div>
 
     <nav class="navbar navbar-expand-lg fixed-top navbar-glass">
-    <div class="container-fluid px-4">
-        
-        <a class="navbar-brand d-flex align-items-center gap-2" href="#">
-            <div class="brand-icon-box">
-                <img src="assets/img/perfil_site.png" alt="MCK" height="24">
-            </div>
-            <div class="d-flex flex-column">
-                <span class="fw-bold text-white tracking-wide">MCK Monitoramento</span>
-                <span class="text-white-50" style="font-size: 0.65rem; margin-top: -3px;">Gestão de Infraestrutura e-SUS</span>
-            </div>
-        </a>
-
-        <div class="d-flex align-items-center ms-auto gap-3">
-
-            <div class="header-item-box d-none d-md-flex align-items-center">
-                <div class="status-dot"></div>
-                <div class="d-flex flex-column text-end ms-2">
-                    <span class="label-mini">SISTEMA ONLINE</span>
-                    <span id="relogio" class="font-monospace fw-bold text-white">--:--:--</span>
-                </div>
-            </div>
-
-            <button class="btn btn-glass-primary position-relative" onclick="abrirModalAprovacao()" title="Gerenciar Aprovações">
-                <i class="bi bi-shield-check"></i>
-                <span class="d-none d-lg-inline ms-2">Solicitações</span>
-                <span id="badge-pendentes" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger shadow-sm border border-dark" style="display: none;">
-                    0
-                </span>
-            </button>
-
-            
-            <div class="header-user-box d-flex align-items-center gap-2 border-start border-white border-opacity-10 ps-3">
-                <div class="avatar-circle">
-                    <i class="bi bi-person-fill"></i>
-                </div>
-                <div class="d-flex flex-column text-end d-none d-md-block">
-                    <!-- <span class="label-mini text-white-50">USUÁRIO</span> -->
-                    <span id="user-display" class="fw-semibold text-white small">Visitante</span>
-                </div>
-            </div>
-
-            <div class="d-flex align-items-center gap-2 border-start border-white border-opacity-10 ps-3">
-                <button class="btn btn-icon-glass" onclick="toggleConsoleLogs()" title="Ver Logs">
-                    <i class="bi bi-terminal"></i>
-                </button>
-
-                <button id="btn-logout" class="btn btn-icon-glass text-danger-hover d-none" onclick="fazerLogout()" title="Sair">
-                    <i class="bi bi-power"></i>
-                </button>
-
-                <button id="btn-login" class="btn btn-sm btn-light fw-bold px-3 rounded-pill" onclick="abrirModalLogin()">
-                    Entrar
-                </button>
-            </div>
-
-        </div>
-    </div>
-</nav>
-    <!-- <nav class="navbar navbar-expand-lg navbar-dark bg-dark-blue shadow-sm sticky-top">
         <div class="container-fluid px-4">
             
-            <a class="navbar-brand fw-bold d-flex align-items-center" href="#">
-                <img src="assets/img/perfil_site.png" alt="Icone" height="30" class="me-2">
-                MCK Monitoramento
+            <a class="navbar-brand d-flex align-items-center gap-2" href="#">
+                <div class="brand-icon-box">
+                    <img src="assets/img/perfil_site.png" alt="MCK" height="24">
+                </div>
+                <div class="d-flex flex-column">
+                    <span class="fw-bold text-white tracking-wide">MCK Monitoramento</span>
+                    <span class="text-white-50" style="font-size: 0.65rem; margin-top: -3px;">Gestão de Infraestrutura e-SUS</span>
+                </div>
             </a>
-            
-            <div class="d-flex align-items-center text-white">
-                <button class="btn btn-outline-light btn-sm me-3 position-relative" onclick="abrirModalAprovacao()">
-                    <i class="bi bi-shield-lock-fill"></i> Solicitações
-                    <span id="badge-pendentes" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display: none;">
+
+            <div class="d-flex align-items-center ms-auto gap-3">
+
+                <div class="header-item-box d-none d-md-flex align-items-center">
+                    <div class="status-dot"></div>
+                    <div class="d-flex flex-column text-end ms-2">
+                        <span class="label-mini">SISTEMA ONLINE</span>
+                        <span id="relogio" class="font-monospace fw-bold text-white">--:--:--</span>
+                    </div>
+                </div>
+
+                <button class="btn btn-glass-primary position-relative" onclick="abrirModalAprovacao()" title="Gerenciar Aprovações">
+                    <i class="bi bi-shield-check"></i>
+                    <span class="d-none d-lg-inline ms-2">Solicitações</span>
+                    <span id="badge-pendentes" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger shadow-sm border border-dark" style="display: none;">
                         0
                     </span>
                 </button>
 
-                <div class="me-4 text-end d-none d-md-block">
-                    <small class="d-block text-white-50" style="font-size: 0.7rem;">USUÁRIO</small>
-                    <span id="user-display" class="fw-semibold">Visitante</span>
+                
+                <div class="header-user-box d-flex align-items-center gap-2 border-start border-white border-opacity-10 ps-3">
+                    <div class="avatar-circle">
+                        <i class="bi bi-person-fill"></i>
+                    </div>
+                    <div class="d-flex flex-column text-end d-none d-md-block">
+                        <!-- <span class="label-mini text-white-50">USUÁRIO</span> -->
+                        <span id="user-display" class="fw-semibold text-white small">Visitante</span>
+                    </div>
                 </div>
 
-                <div class="text-end border-start ps-3 border-secondary">
-                    <small class="d-block text-white-50" style="font-size: 0.7rem;">ÚLTIMA VERIFICAÇÃO</small>
-                    <span id="relogio" class="font-monospace">--:--:--</span>
-                </div>
-
-                <div class="ms-3 border-start ps-3 border-secondary">
-                    
-                    <button id="btn-logout" class="btn btn-outline-danger btn-sm d-none" onclick="fazerLogout()" title="Sair do sistema">
-                        <i class="bi bi-box-arrow-right"></i> Sair
+                <div class="d-flex align-items-center gap-2 border-start border-white border-opacity-10 ps-3">
+                    <button class="btn btn-icon-glass" onclick="toggleConsoleLogs()" title="Ver Logs">
+                        <i class="bi bi-terminal"></i>
                     </button>
 
-                    <button class="btn btn-outline-info btn-sm me-2" onclick="toggleConsoleLogs()">
-                        <i class="bi bi-terminal"></i> Logs
+                    <button id="btn-logout" class="btn btn-icon-glass text-danger-hover d-none" onclick="fazerLogout()" title="Sair">
+                        <i class="bi bi-power"></i>
                     </button>
 
-                    <button id="btn-login" class="btn btn-outline-light btn-sm" onclick="abrirModalLogin()" title="Fazer Login">
-                        <i class="bi bi-person-lock"></i> Entrar
+                    <button id="btn-login" class="btn btn-sm btn-light fw-bold px-3 rounded-pill" onclick="abrirModalLogin()">
+                        Entrar
                     </button>
-
                 </div>
 
             </div>
         </div>
-    </nav> -->
-
+    </nav>
+    
     <div class="container-fluid px-4 mt-2 conteudo-principal">
-        <!-- <div class="row mb-4 align-items-center">
-            <div class="col">
-                <h5 class="text-secondary mb-0">Visão Geral</h5>
-                <p class="text-muted small">Monitoramento em tempo real dos serviços e-SUS.</p>
-            </div>
-        </div> -->
-
         <div id="sentinela-topo"></div>
         <div class="control-bar" id="barra-controle">
             <div class="row align-items-center gy-3">
@@ -364,9 +308,16 @@
         </div>
     </div>
 
-   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-    <script src="assets/js/config.js?v=2.1"></script>
-    <script src="assets/js/app.js?v=2.1"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/modules/utils.js"></script>
+    <script src="assets/js/modules/ui.js"></script>
+    <script src="assets/js/modules/auth.js"></script>
+    <script src="assets/js/modules/commands.js"></script>
+    <script src="assets/js/modules/logs.js"></script>
+    <script src="assets/js/main.js"></script>
 </body>
 </html>

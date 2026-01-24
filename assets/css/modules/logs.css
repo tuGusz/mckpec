@@ -1,0 +1,162 @@
+.log-entry {
+    margin-bottom: 4px;
+    border-bottom: 1px solid #1e293b;
+    padding-bottom: 2px;
+    word-wrap: break-word;
+}
+
+.log-time { color: #64748b; margin-right: 5px; }
+.log-host { color: #38bdf8; font-weight: bold; margin-right: 5px; }
+.log-msg { color: #d1d5db; }
+
+#log-focus-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100vh;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.blur-backdrop {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(15, 23, 42, 0.6); /* Azul escuro transparente */
+    backdrop-filter: blur(8px);       /* O Desfoque do fundo */
+    animation: fadeIn 0.3s ease;
+}
+
+.log-stage {
+    position: relative;
+    width: 90%;
+    max-width: 1200px;
+    height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 40px;
+    z-index: 10001;
+}
+
+/* Painel de Logs (Esquerda) */
+.log-panel {
+    flex: 1;
+    height: 100%;
+    background: #1e293b; /* Dark Blue */
+    border-radius: 16px;
+    border: 1px solid #334155;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    
+    /* Animação de entrada: Vem da esquerda */
+    transform: translateX(-50px);
+    opacity: 0;
+    animation: slideInLeft 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation-delay: 0.1s;
+}
+
+.log-header {
+    padding: 15px 20px;
+    background: #0f172a;
+    border-bottom: 1px solid #334155;
+    display: flex; justify-content: space-between; align-items: center;
+}
+
+.log-content {
+    flex: 1;
+    padding: 0;
+    overflow-y: auto;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 0.8rem;
+    background: #0f172a; 
+}
+ 
+.log-row {
+    display: flex;
+    border-bottom: 1px solid #1e293b;
+    padding: 8px 12px;
+    color: #cbd5e1;
+}
+.log-row:nth-child(even) { background: rgba(255,255,255,0.02); }
+.log-row:hover { background: rgba(255,255,255,0.05); }
+
+.l-time { color: #94a3b8; width: 130px; flex-shrink: 0; font-size: 0.75rem; }
+.l-type { width: 80px; flex-shrink: 0; font-weight: bold; text-align: center; margin-right: 10px; border-radius: 4px; font-size: 0.7rem; padding: 2px 0;}
+.l-msg  { flex: 1; word-break: break-word; color: #e2e8f0; }
+
+.type-BOOT { background: #3b82f620; color: #60a5fa; }
+.type-CRITICO { background: #ef444420; color: #fca5a5; }
+.type-REDE { background: #f59e0b20; color: #fcd34d; }
+.type-SHUTDOWN { background: #64748b20; color: #94a3b8; }
+
+.card-placeholder {
+    width: 350px; 
+    transform: translateX(-50px) scale(0.9);
+    opacity: 0;
+    animation: popCardRight 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+ 
+.log-row.header-row {
+    background-color: #0f172a;  
+    border-bottom: 2px solid #334155;
+    font-weight: bold;
+    color: #94a3b8;
+    position: sticky;  
+    top: 0;
+    z-index: 10;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    letter-spacing: 1px;
+}
+ 
+.btn-outline-success:hover {
+    background-color: rgba(16, 185, 129, 0.2);
+    color: #10b981;
+}
+ 
+.console-floating {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 500px;
+    height: 350px;
+    background-color: #0f172a; 
+    border: 1px solid #334155;
+    border-radius: 8px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    font-family: 'Courier New', Courier, monospace;
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+}
+
+.console-header {
+    background-color: #1e293b;
+    padding: 8px 12px;
+    color: #94a3b8;
+    border-bottom: 1px solid #334155;
+    font-size: 0.8rem;
+}
+
+.console-body {
+    flex: 1;
+    padding: 10px;
+    overflow-y: auto;
+    background-color: #020617;
+    color: #22c55e; 
+    font-size: 0.75rem;
+}
+
+.custom-scrollbar::-webkit-scrollbar { width: 8px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: #0f172a; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
+ 
+ 
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideInLeft { to { transform: translateX(0); opacity: 1; } }
+@keyframes popCardRight { to { transform: translateX(0) scale(1); opacity: 1; } }
