@@ -10,26 +10,32 @@ function iniciarCicloAtualizacao() {
         const dados = snapshot.val();
         dadosGlobais = dados || {};
         
-        // Atualiza o relógio apenas visualmente
         document.getElementById('relogio').innerText = new Date().toLocaleTimeString('pt-BR');
         
-        // Renderiza a tela apenas quando o dado muda no servidor
         renderizarCards(); 
     }, (error) => {
         console.error("Erro no Listener Clientes:", error);
     });
 
-    // Escuta mudanças no sistema (versão)
     firebase.database().ref('sistema').on('value', (snapshot) => {
         const dados = snapshot.val();
         dadosSistema = dados || {};
-        renderizarCards(); // Re-renderiza para atualizar avisos de versão
+        renderizarCards(); 
     });
 }
 
 function renderizarCards() {
     atualizarContadoresFiltros();
     
+    // const vPecMeta = dadosSistema.pec_versao_recente || "--";
+    // const vAgenteMeta = dadosSistema.agente_versao_recente || "v1.0.0"; // Fallback se não tiver no banco
+
+    // const elPec = document.getElementById('legenda-versao-pec');
+    // const elAgente = document.getElementById('legenda-versao-agente');
+    
+    // if(elPec) elPec.innerText = vPecMeta;
+    // if(elAgente) elAgente.innerText = vAgenteMeta;
+
     const container = document.getElementById('painel-clientes');
     const agora = new Date();
     const versaoMeta = dadosSistema.pec_versao_recente || "0.0.0";
@@ -41,66 +47,48 @@ function renderizarCards() {
         listaClientes.push(cliente);
     }
 
-    // --- 1. FILTRAGEM ---
     const listaFiltrada = listaClientes.filter(cliente => {
-        // 1. Filtro de Pendentes (Sempre ativo)
         if (idsPendentes.includes(cliente.hwid)) return false;
 
-        // 2. Filtro de Pesquisa (Texto)
         let nome = (cliente.municipio || cliente.nome_municipio || cliente.maquina || "").toLowerCase();
         let id = cliente.hwid.toLowerCase();
         const matchTexto = nome.includes(termoPesquisa) || id.includes(termoPesquisa);
         if(!matchTexto) return false;
 
-        // 3. Preparação de Dados para Filtros Lógicos
         let dataUltima = parseDataPTBR(cliente.ultima_atualizacao);
         let difSegundos = (agora - dataUltima) / 1000;
         let isOnline = difSegundos <= 600; // 10 min
         let listaErros = cliente.erros || [];
         
-        // Cálculo de Versão (Trazido para cá para usar no filtro)
         let versaoPec = cliente.versao_pec || "N/A";
         let isDesatualizado = compararVersoes(versaoPec, versaoMeta) < 0;
 
-        // 4. Lógica de Múltiplos Filtros (Lógica OR - OU)
-        // Se nenhum filtro estiver marcado, mostra TODOS (padrão)
+     
         if (filtrosAtivos.length === 0) return true;
 
         let atendeAlgumFiltro = false;
 
         if (filtrosAtivos.includes('online') && isOnline) atendeAlgumFiltro = true;
         if (filtrosAtivos.includes('offline') && !isOnline) atendeAlgumFiltro = true;
-        
-        // Status de Erro (Considera Online mas com status 'Erro')
         if (filtrosAtivos.includes('erro') && isOnline && cliente.status_geral !== 'Online') atendeAlgumFiltro = true;
-        
-        // Erro Específico: e-SUS
         if (filtrosAtivos.includes('pec_off') && isOnline && listaErros.includes("PEC OFF")) atendeAlgumFiltro = true;
-
-        // NOVO: PEC Desatualizado
         if (filtrosAtivos.includes('desatualizado') && isDesatualizado) atendeAlgumFiltro = true;
 
         return atendeAlgumFiltro;
     });
  
     listaFiltrada.sort((a, b) => {
-        // Pega o nome de exibição de cada um (com os mesmos fallbacks de segurança)
         let nomeA = (a.municipio || a.nome_municipio || a.maquina || "").trim().toLowerCase();
         let nomeB = (b.municipio || b.nome_municipio || b.maquina || "").trim().toLowerCase();
-        
-        // Compara apenas os nomes (A-Z)
         return nomeA.localeCompare(nomeB);
     });
 
-    // --- 3. LIMPEZA INTELIGENTE (CORREÇÃO DO PISCA-PISCA E SPINNER) ---
     const idsAtuais = listaFiltrada.map(c => c.hwid);
     const filhos = Array.from(container.children);
     
     filhos.forEach(div => {
-        // Se o elemento não tem ID de wrapper (ex: é o spinner ou msg vazio), remove.
-        // Se tem ID de wrapper mas não está na lista atual, remove.
         if (!div.id.startsWith('wrapper-')) {
-            div.remove(); // TCHAU SPINNER!
+            div.remove();  
         } else {
             let idTela = div.id.replace('wrapper-', '');
             if (!idsAtuais.includes(idTela)) div.remove();
@@ -108,14 +96,12 @@ function renderizarCards() {
     });
 
     if (listaFiltrada.length === 0) {
-        // Só adiciona a mensagem se já não tiver cards (para não piscar)
         if (container.children.length === 0) {
             container.innerHTML = `<div class="col-12 text-center mt-5" id="msg-vazio"><p class="text-muted">Nenhum resultado encontrado.</p></div>`;
         }
         return;
     }
 
-    // --- 4. RENDERIZAÇÃO ---
     listaFiltrada.forEach(info => {
         let hwid = info.hwid;
 
@@ -127,9 +113,7 @@ function renderizarCards() {
         if (info.erros && Array.isArray(info.erros)) {
             info.erros = info.erros.filter(erro => erro !== "Gateway OFF");
         }
-        // 2. Recalcula o Status:
-        // Se o Agente mandou status de erro, mas a gente limpou a lista de erros acima,
-        // então forçamos ele a ficar "Online" visualmente (desde que não esteja Offline por tempo).
+       
         let dataRef = parseDataPTBR(info.ultima_atualizacao);
         let segs = (agora - dataRef) / 1000;
         let isComunicando = segs <= 600; // 10 minutos de tolerância
@@ -137,14 +121,12 @@ function renderizarCards() {
         if (isComunicando && (!info.erros || info.erros.length === 0) && info.status_geral !== 'Atualizando') {
             info.status_geral = 'Online';
         }
-        
-        // CORREÇÃO NOME: Fallback se vier vazio
+   
         let nomeExibicao = info.municipio || info.nome_municipio;
         if (!nomeExibicao || nomeExibicao === "Sem Nome") {
             nomeExibicao = info.maquina ? info.maquina : "Aguardando ID...";
         }
 
-        // Logs
         let logAtual = info.log_acao || "";
         let logAntigo = historicoLogs[hwid];
 
@@ -156,14 +138,14 @@ function renderizarCards() {
         }
 
         if (!info.log_acao) historicoLogs[hwid] = "";
-
-        // Variáveis
         let hwInfo = info.hardware || {};
         let ipPublico = info.ip_publico || "--.---.---.---";
         let dataUltimaAtualizacao = parseDataPTBR(info.ultima_atualizacao);
         let diferencaSegundos = (agora - dataUltimaAtualizacao) / 1000;
         let isOnline = diferencaSegundos <= 600;
-        let isUpdating = (info.comando === 'update_pec' || info.comando === 'update_pec_background' || info.status_geral === 'Atualizando');
+
+        let comandoPendente = info.comando && info.comando !== "" && info.comando !== "null";
+        let isUpdating = (comandoPendente || info.comando === 'update_pec' || info.comando === 'update_pec_background' || info.status_geral === 'Atualizando');
 
         let discoTotal = parseFloat(hwInfo.disco_total_gb) || 0;
         let discoLivre = parseFloat(hwInfo.disco_livre_gb) || 0;
@@ -172,8 +154,8 @@ function renderizarCards() {
         let espacoCritico = discoLivre < 15;
 
         let diskBarClass = "";
-        if (pctUso > 90 || espacoCritico) diskBarClass = "danger"; // Vermelho se cheio ou crítico
-        else if (pctUso > 75) diskBarClass = "warning"; // Amarelo
+        if (pctUso > 90 || espacoCritico) diskBarClass = "danger"; 
+        else if (pctUso > 75) diskBarClass = "warning"; 
         else diskBarClass = "";
 
         let htmlDisco = `
@@ -222,11 +204,11 @@ function renderizarCards() {
                      
                 </div>`; //${makeBadge("Gateway", listaErros.includes("Gateway OFF"))}
 
-        // CORREÇÃO CHECKBOX: Ler estado atual do DOM antes de regravar o HTML
+ 
         let chkId = `chk-bg-${hwid}`;
         let chkElement = document.getElementById(chkId);
-        let isChecked = chkElement ? chkElement.checked : false; // Salva estado
-        let checkedStr = isChecked ? "checked" : ""; // Reaplica
+        let isChecked = chkElement ? chkElement.checked : false; 
+        let checkedStr = isChecked ? "checked" : ""; 
 
 
 
@@ -244,7 +226,7 @@ function renderizarCards() {
                 let btnUpdate = '';
         if (isDesatualizado) {
             if (espacoCritico) {
-                // BLOQUEIA O BOTÃO SE NÃO TIVER ESPAÇO
+               
                 btnUpdate = `
                     <div class="mt-2">
                          <button class="btn btn-light border btn-sm text-danger w-100" disabled style="opacity: 1; cursor: not-allowed; border-color: #fca5a5 !important; background-color: #fef2f2;">
@@ -252,7 +234,7 @@ function renderizarCards() {
                          </button>
                     </div>`;
             } else {
-                // MOSTRA O BOTÃO NORMALMENTE
+             
                 btnUpdate = `
                     <div class="border-top pt-2 mt-2">
                          <div class="form-check form-switch d-flex justify-content-center mb-2">
@@ -296,18 +278,46 @@ function renderizarCards() {
         let cardExtraClasses = '';
         if (isUpdating) {
             cardExtraClasses = 'card-updating'; 
-            let mensagemLog = info.log_acao || "Preparando ambiente...";
-            if(info.comando === 'update_pec_background') mensagemLog = "(Background) " + mensagemLog;
+            
+            let msgOverlay = "Processando...";
+            let iconOverlay = "bi-gear-wide-connected";
+            let animClass = "pulsing-icon"; 
 
+            // Personaliza a mensagem baseada no comando atual do banco de dados
+            if (info.status_geral === 'Atualizando') {
+                msgOverlay = "Atualizando Sistema...";
+                iconOverlay = "bi-arrow-repeat";
+                animClass = "spinner-border text-success"; // Spinner padrão para update longo
+            } else if (comandoPendente) {
+                if(info.comando.includes('update')) { msgOverlay = "Iniciando Update..."; iconOverlay = "bi-cloud-download"; }
+                else if(info.comando.includes('start')) { msgOverlay = "Iniciando Serviço..."; iconOverlay = "bi-play-circle"; }
+                else if(info.comando.includes('stop')) { msgOverlay = "Parando Serviço..."; iconOverlay = "bi-stop-circle"; }
+                else if(info.comando.includes('restart')) { msgOverlay = "Reiniciando..."; iconOverlay = "bi-arrow-clockwise"; }
+                else if(info.comando.includes('request_logs')) { msgOverlay = "Buscando Logs..."; iconOverlay = "bi-file-text"; }
+            }
+
+            // HTML do Overlay (Idêntico ao visual do commands.js para consistência)
             overlayHtml = `
-                <div class="update-overlay">
-                    <div class="spinner-border spinner-update" role="status"></div>
-                    <div class="text-update mt-3 fw-bold"><i class="bi bi-arrow-repeat"></i> Atualizando PEC...</div>
-                    <div class="mt-2 px-3 py-1 rounded bg-black bg-opacity-50 text-warning font-monospace" style="font-size: 0.75rem; max-width: 90%;"> > ${mensagemLog} </div>
+                <div class="command-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(2px); z-index: 20; display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 10px;">
+                    <div class="${animClass}" style="font-size: 2rem; color: #3b82f6;"><i class="bi ${iconOverlay}"></i></div>
+                    <h6 class="fw-bold text-dark mt-2">${msgOverlay}</h6>
+                    <small class="text-muted text-center px-3">Aguarde o agente responder...</small>
                 </div>`;
         }
+        // if (isUpdating) {
+        //     cardExtraClasses = 'card-updating'; 
+        //     let mensagemLog = info.log_acao || "Preparando ambiente...";
+        //     if(info.comando === 'update_pec_background') mensagemLog = "(Background) " + mensagemLog;
 
-        // --- MONTAGEM HTML (SEU LAYOUT ORIGINAL) ---
+        //     overlayHtml = `
+        //         <div class="update-overlay">
+        //             <div class="spinner-border spinner-update" role="status"></div>
+        //             <div class="text-update mt-3 fw-bold"><i class="bi bi-arrow-repeat"></i> Atualizando PEC...</div>
+        //             <div class="mt-2 px-3 py-1 rounded bg-black bg-opacity-50 text-warning font-monospace" style="font-size: 0.75rem; max-width: 90%;"> > ${mensagemLog} </div>
+        //         </div>`;
+        // }
+
+     
         let btnLogs = `<button class="btn btn-sm btn-outline-secondary border-0 ms-2 py-0 px-2" onclick="abrirVisualizadorLogs('${hwid}')" title="Ver Logs Locais"><i class="bi bi-file-text"></i></button>`;
         let htmlContent = `
             ${overlayHtml} <div class="card-body">
@@ -392,12 +402,10 @@ function monitorarPendentes() {
         const dados = snapshot.val();
         const badge = document.getElementById('badge-pendentes');
         const lista = document.getElementById('lista-pendentes');
-        
-        // --- ATUALIZA A LISTA GLOBAL DE PENDENTES ---
+    
         idsPendentes = dados ? Object.keys(dados) : [];
-        renderizarCards(); // Força atualização do painel para esconder os intrusos
-        // --------------------------------------------
-
+        renderizarCards(); 
+    
         if (!dados) {
             if(badge) badge.style.display = 'none';
             if(lista) lista.innerHTML = '<div class="p-4 text-center text-muted">Nenhuma solicitação pendente.</div>';
@@ -432,7 +440,6 @@ function monitorarPendentes() {
 }
 
 function atualizarContadoresFiltros() {
-    // Inicializa contadores
     let counts = {
         online: 0,
         offline: 0,
@@ -444,14 +451,9 @@ function atualizarContadoresFiltros() {
     const agora = new Date();
     const versaoMeta = dadosSistema.pec_versao_recente || "0.0.0";
 
-    // Itera sobre TODOS os dados (não apenas os filtrados na tela)
     for (let hwid in dadosGlobais) {
         let cliente = dadosGlobais[hwid];
-
-        // Se for pendente ou destruído, ignora na contagem
         if (idsPendentes.includes(hwid) || cliente.status_geral === 'DESTRUCT') continue;
-
-        // Lógica de Status (Mesma usada no renderizarCards)
         let dataUltima = parseDataPTBR(cliente.ultima_atualizacao);
         let difSegundos = (agora - dataUltima) / 1000;
         let isOnline = difSegundos <= 600; // 10 min
@@ -460,11 +462,9 @@ function atualizarContadoresFiltros() {
         let isDesatualizado = compararVersoes(versaoPec, versaoMeta) < 0;
         let listaErros = cliente.erros || [];
 
-        // Incrementa contadores
+        
         if (isOnline) {
             counts.online++;
-            
-            // Se está online, checa erros
             if (cliente.status_geral !== 'Online' && cliente.status_geral !== 'Atualizando') {
                 counts.erro++;
             }
@@ -480,7 +480,6 @@ function atualizarContadoresFiltros() {
         }
     }
 
-    // Atualiza o HTML (DOM)
     const setTxt = (id, val) => {
         const el = document.getElementById(id);
         if(el) el.innerText = val;
