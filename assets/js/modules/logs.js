@@ -23,7 +23,28 @@ function abrirVisualizadorLogs(hwid) {
         placeholder.innerHTML = ""; 
         const clone = cardOriginal.cloneNode(true);
         clone.id = `clone-${hwid}`;
-        clone.classList.remove('h-100'); 
+        clone.classList.remove('h-100');
+        
+        // --- NOVO CÓDIGO: INJETA O OVERLAY NO CLONE ---
+        // Como sabemos que estamos pedindo logs, forçamos o visual de "Buscando Logs"
+        if (isOnline) {
+            const overlayDiv = document.createElement('div');
+            overlayDiv.className = 'command-overlay';
+            // Copiei os estilos inline do seu ui.js para garantir que fique igual
+            overlayDiv.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(2px); z-index: 20; display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 10px;';
+            
+            overlayDiv.innerHTML = `
+                <div class="pulsing-icon" style="font-size: 2rem; color: #3b82f6;"><i class="bi bi-file-text"></i></div>
+                <h6 class="fw-bold text-dark mt-2">Buscando Logs...</h6>
+                <small class="text-muted text-center px-3">Aguarde o agente responder...</small>
+            `;
+            
+            // Garante que o clone tenha posição relativa para o overlay cobrir ele
+            clone.style.position = 'relative';
+            clone.appendChild(overlayDiv);
+        }
+        // ------------------------------------------------
+
         placeholder.appendChild(clone);
     }
 
@@ -64,6 +85,13 @@ function abrirVisualizadorLogs(hwid) {
     logListenerAtivo = logsRef.on('value', (snapshot) => {
         const dados = snapshot.val();
         if (dados && dados !== "Aguardando...") {
+            const placeholder = document.getElementById('card-focus-placeholder');
+            const overlayLoading = placeholder.querySelector('.command-overlay');
+            
+            if (overlayLoading) {
+                overlayLoading.remove(); 
+            }
+            
             renderizarTabelaLogs(dados);
         }
     });
