@@ -25,6 +25,20 @@ function abrirVisualizadorLogs(hwid) {
         clone.id = `clone-${hwid}`;
         clone.classList.remove('h-100');
         
+        const btnLogsClone = clone.querySelector('button[onclick*="abrirVisualizadorLogs"]');
+        
+        if (btnLogsClone) {
+            // Cria um botão pequeno, circular e simples apenas para visualização
+            const miniButtonHtml = `
+                <button class="btn btn-sm btn-light border rounded-circle p-0 d-flex align-items-center justify-content-center shadow-sm me-2" 
+                        style="width: 32px; height: 32px; cursor: default;" disabled>
+                    <i class="bi bi-file-earmark-text-fill text-primary"></i>
+                </button>`;
+            
+            // Substitui o botão grandão pelo pequeno no HTML do clone
+            btnLogsClone.outerHTML = miniButtonHtml;
+        }
+        
         // --- NOVO CÓDIGO: INJETA O OVERLAY NO CLONE ---
         // Como sabemos que estamos pedindo logs, forçamos o visual de "Buscando Logs"
         if (isOnline) {
@@ -91,7 +105,7 @@ function abrirVisualizadorLogs(hwid) {
             if (overlayLoading) {
                 overlayLoading.remove(); 
             }
-            
+
             renderizarTabelaLogs(dados);
         }
     });

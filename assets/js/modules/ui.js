@@ -25,6 +25,7 @@ function iniciarCicloAtualizacao() {
 }
 
 function renderizarCards() {
+    injetarEstilosGemini();
     atualizarContadoresFiltros();
     
     // const vPecMeta = dadosSistema.pec_versao_recente || "--";
@@ -318,7 +319,16 @@ function renderizarCards() {
         // }
 
      
-        let btnLogs = `<button class="btn btn-sm btn-outline-secondary border-0 ms-2 py-0 px-2" onclick="abrirVisualizadorLogs('${hwid}')" title="Ver Logs Locais"><i class="bi bi-file-text"></i></button>`;
+        // let btnLogs = `<button class="btn btn-sm btn-outline-secondary border-0 ms-2 py-0 px-2" onclick="abrirVisualizadorLogs('${hwid}')" title="Ver Logs Locais"><i class="bi bi-file-text"></i></button>`;
+        let btnLogs = `
+            <button class="btn btn-sm rounded-pill px-3 py-1 btn-gemini-animated me-2" 
+                    onclick="abrirVisualizadorLogs('${hwid}')" 
+                    title="Abrir Auditoria e Logs do Sistema">
+                <span class="btn-gemini-content">
+                    <i class="bi bi-file-earmark-text-fill text-primary me-2"></i>
+                    <span class="fw-bold text-secondary" style="font-size: 0.7rem; letter-spacing: 0.5px;">LOGS</span>
+                </span>
+            </button>`;
         let htmlContent = `
             ${overlayHtml} <div class="card-body">
            
@@ -524,6 +534,81 @@ async function buscarDados() {
     } catch (e) {
         console.error("Erro ao buscar dados:", e);
     }
+}
+
+
+function injetarEstilosGemini() {
+    const styleId = 'gemini-border-style';
+    if (document.getElementById(styleId)) return; 
+
+    const style = document.createElement('style');
+    style.id = styleId;
+    style.textContent = `
+        /* Botão base - Define o formato e esconde o que vaza */
+        .btn-gemini-animated {
+            position: relative;
+            z-index: 0;
+            border: none !important;
+            background: transparent; /* Importante ser transparente para o mask funcionar */
+            overflow: hidden; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease;
+        }
+        
+        .btn-gemini-animated:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        /* O SEGREDO DA CORREÇÃO:
+           Criamos um QUADRADO GIGANTE (aspect-ratio 1/1) que é muito maior que o botão.
+           Centralizamos ele com top/left 50% e translate -50%.
+           Assim, quando ele gira, ele nunca deixa de cobrir as pontas da pílula.
+        */
+        .btn-gemini-animated::before {
+            content: '';
+            position: absolute;
+            z-index: -2;
+            top: 50%;
+            left: 50%;
+            width: 500%; /* Largura exagerada para garantir cobertura */
+            height: 500%; /* Altura exagerada para garantir cobertura */
+            transform: translate(-50%, -50%) rotate(0deg); /* Centraliza */
+            
+            background: conic-gradient(
+                transparent 0deg, 
+                transparent 250deg, /* Aumentei o espaço transparente para a cobra ficar menor */
+                #8A2BE2 270deg,     /* Roxo */
+                #4169E1 310deg,     /* Azul */
+                #00CED1 360deg      /* Ciano */
+            );
+            animation: rotate-border 4s linear infinite;
+        }
+
+        /* A Máscara Interna (O fundo branco do botão) */
+        .btn-gemini-animated::after {
+            content: '';
+            position: absolute;
+            z-index: -1;
+            /* Define a espessura da borda (2px) */
+            left: 2px; top: 2px; right: 2px; bottom: 2px; 
+            background: #fff; 
+            border-radius: 999px; /* Força formato pílula perfeito */
+        }
+
+        .btn-gemini-content {
+            position: relative;
+            z-index: 1;
+            display: flex; align-items: center;
+        }
+
+        /* Animação corrigida para manter o eixo centralizado enquanto gira */
+        @keyframes rotate-border {
+            0%   { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+    `;
+    document.head.appendChild(style);
 }
 
 window.abrirModalAprovacao = function() {
